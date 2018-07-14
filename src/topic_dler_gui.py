@@ -203,14 +203,14 @@ if __name__ == "__main__":
 
     if getattr(sys, 'frozen', False): # PyInstaller adds this attribute
         # Running in a bundle
-        CurrentPath = sys._MEIPASS
+        currentPath = sys._MEIPASS
     else:
         # Running in normal Python environment
-        CurrentPath = os.path.dirname(__file__)
+        currentPath = os.path.dirname(__file__)
 
     root = Tk()
     root.title("topic_DLer by Kyprinite")
-    folder_path = path.join(CurrentPath, "data")
+    folder_path = path.join(currentPath, "data")
     root.iconbitmap(path.join(folder_path, "mini.ico"))
     app = Application(master=root)
     app.mainloop()

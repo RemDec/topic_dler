@@ -1,0 +1,2 @@
+pyinstaller --onefile --icon=data/mini.ico topic_dler_gui.py
+pyinstaller topic_dler_gui.spec

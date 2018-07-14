@@ -68,9 +68,14 @@ class Image_selector():
         pixels = []
         for coord in corners:
             pixels.append(image.getpixel(coord))
-        white_corners = pixels.count((255,255,255,0))
-        infos[0] += " ~ " + str(white_corners) + " corners"
-        return white_corners>1
+        print(pixels)
+        uni_corners = 0
+        if len(pixels[0]) >= 3:
+            for p in pixels:
+                if p[0] == p[1] and p[1] == p[2]:
+                    uni_corners += 1
+        infos[0] += " ~ " + str(uni_corners) + " corners"
+        return uni_corners>1
         
         
         
@@ -175,6 +180,9 @@ class Jvc_downloader():
     
     #DL d'une ressource 
     def fetch_elmt_oftype(self, url, oftype, alt_fct, slct_fct=None, alt_name=None, redirect=False):
+        if url in self.all_dl_resources:
+            self.display("       *" + reduce_name(url, self.get_name_sep()) + "*")
+            return True
         response = http_request(url)
         if response is None:
             return None
@@ -189,9 +197,6 @@ class Jvc_downloader():
             content = response.read()
             to_reduce = alt_name if alt_name is not None else url
             elmt_name = reduce_name(to_reduce, self.get_name_sep(), res_format)
-            if url in self.all_dl_resources:
-                self.display("       *" + elmt_name + "*")
-                return True
             self.display("       " + elmt_name)
             accept = True
             if slct_fct is not None:
@@ -199,10 +204,11 @@ class Jvc_downloader():
             if accept:
                 with open(self.dir + "/" + elmt_name, 'wb+') as elmt_file:
                     elmt_file.write(content)
-                    self.all_dl_resources.add(url)
                     self.num_dl += 1
+                    print(self.all_dl_resources)
             else:
                 self.display("        |_ rejected")
+            self.all_dl_resources.add(url)
             return True
         else:
             # On doit la chercher sur la page recue
@@ -270,7 +276,7 @@ class Jvc_downloader():
             return minimum
             
     def display_end(self):
-        s = "** fin," +str(self.num_dl)+ " fichiers dl dans /" +self.dir+ " **"
+        s = "**" + str(self.num_dl)+ " fichiers dl dans " +self.dir+ " **"
         self.display("*"*len(s))
         self.display(s)
         self.display("*"*len(s))
