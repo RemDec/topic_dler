@@ -1,16 +1,79 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from topic_dler_main import *
+from utils import *
+from web_utils import *
 from sortedcontainers import SortedList
 from PIL import Image
-import io
+from io import BytesIO
         
 class Page_not_foundError(Exception):
     def __init__(self, url):
         self.url = url
     def __str__(self):
         return "Error 404 - page " + self.url + " not found." 
+        
+class Image_selector():
+    
+    def __init__(self, stickers_control, bareme=[0, 0.3, 0.5, 0.8]):
+        all_fct = [self.stick_by_size, self.stick_by_weight,
+                    self.stick_by_name, self.stick_by_borders]
+        self.used_fct = []
+        for i, b_val in enumerate(bareme):
+            if i >= len(all_fct) or b_val > stickers_control:
+                break
+            else:
+                self.used_fct.append( (b_val, all_fct[i]) )
+        
+        self.stick_names = ["ris", "jes", "stick", "larry", "chancla", "issou", "reup"]
+             
+    def is_sticker(self, image, response, redirect):
+        img_infos = ["        |"]
+        if redirect:
+            f = self.used_fct[1:]
+        else:
+            f = self.used_fct
+        for (_, detect_fct) in f:
+            if detect_fct(image, response, img_infos):
+                return (True, ('').join(img_infos))
+        return (False, ('').join(img_infos))
+        
+        
+    def stick_by_size(self, image, response, infos):
+        #Les stickers suivent une taille de ratio hauteur = largeur*4/3
+        (width, height) = image.size
+        is_sticker_size = abs(width - (height*4)/3) <= 1
+        infos[0] += str(width) + "x" + str(height)
+        return is_sticker_size
+        
+    def stick_by_weight(self, image, response, infos):
+        weight = int(response.headers['content-length'])
+        # En dessous de 15 Ko, considere sticker
+        infos[0] += " ~ " + str(weight/1000) + " ko"
+        return weight < 15000
+        
+    def stick_by_name(self, image, response, infos):
+        name = response.geturl()
+        infos[0] += " ~ " + name
+        for n in self.stick_names:
+            if n in name:
+                # nom de l'image contient un nom de stickers
+                return True
+        return False
+        
+    def stick_by_borders(self, image, response, infos):
+        # Detection des pixels blancs dans les coins
+        (width, height) = image.size
+        corners = [(0,0), (width-1, 0), (width-1,height-1), (0, height-1)]
+        pixels = []
+        for coord in corners:
+            pixels.append(image.getpixel(coord))
+        white_corners = pixels.count((255,255,255,0))
+        infos[0] += " ~ " + str(white_corners) + " corners"
+        return white_corners>1
+        
+        
+        
 
 class Jvc_downloader():
     
@@ -19,6 +82,7 @@ class Jvc_downloader():
         if main_page is None or type(main_page) is tuple:
             raise Page_not_foundError(params['url'])
         self.init_params(params, main_page)
+        self.img_sel = Image_selector(params['stick_ctrl'])
         self.log = logwidget
         
         
@@ -27,36 +91,30 @@ class Jvc_downloader():
         self.verb = params['verb']
         self.tree = tree_from_page(page)
         self.dir = self.init_dir(self.tree)
-        self.all_topic_pages = sorted([params['url']] + others_pages_jvc(self.tree))
+        self.all_topic_pages = sorted([params['url']] + self.others_pages_jvc(self.tree))
         self.all_dl_resources = SortedList()
         self.num_dl = 0
-        self.stick_detect_fct = self.init_detect_fct()
-        self.stick_names = self.init_stick_names()
         
         
-    def init_dir(self, tree):
-        if self.params['path'] != "<current working directory>/nom_topic":
-            return self.params['path']
+    def init_dir(self, tree):    
+        if self.params['path'] != "<current working directory>":
+            base = self.params['path']
         else:
+            base = "."
+        if self.params['nf']:
             topic_title = tree.xpath('//title/text()')[0]
             new_dir = to_folder_name(topic_title)
-            os.makedirs(new_dir, exist_ok=True)
-            return new_dir
-        
-    def init_detect_fct(self):
-        all_fct = [self.nr_by_weight, self.nr_by_name, self.nr_by_borders]
-        to_return = [self.nr_by_size]
-        strength = self.params['stick_ctrl']
-        if strength > 0.3:
-            to_return.append(all_fct[0])
-        if strength > 0.4:
-            to_return.append(all_fct[1])
-        if strength > 0.7:
-            to_return.append(all_fct[2])
-        return to_return
-        
-    def init_stick_names(self):
-        return ["ris", "jes", "stick", "larry", "chancla", "issou"]
+        else:
+            new_dir = ""
+        final = base + "/" + new_dir
+        os.makedirs(final, exist_ok=True)
+        return final
+            
+    #Recherche des toutes les pages
+    def others_pages_jvc(self, curr_page_tree):
+        other_p = curr_page_tree.xpath('//div[@class="bloc-liste-num-page"]//@href')
+        no_doubles = set(["http://www.jeuxvideo.com"+cut_link for cut_link in other_p])
+        return list(no_doubles)
     
     #Boucles sur toutes les pages
     def start_dl(self):
@@ -157,64 +215,25 @@ class Jvc_downloader():
         self.fetch_elmt_oftype(img_url, "image", self.img_from_noel, slct_fct, alt_name, redirect=True) 
 
     def is_img_relevant(self, response, content, redirect=False):
-        image = Image.open(io.BytesIO(content))
-        is_sticker = False
-        infos = ["        |"]
-        for test_fct in self.stick_detect_fct:
-            if redirect and test_fct in [self.nr_by_size]:
-                continue
-            seems_sticker = test_fct(image, response, infos)
-            if seems_sticker:
-                is_sticker = True
-                break
-        
+        image = Image.open(BytesIO(content))
+        (is_sticker, img_infos) = self.img_sel.is_sticker(image, response, redirect)
+
         if self.params['stick'] == 1:
             # no stickers
             relevant = not(is_sticker)
         else:
             relevant = is_sticker
-        self.display(infos[0])
-        return relevant
-        
-    def nr_by_size(self, image, response, infos):
-        #Les stickers suivent une taille de ratio hauteur = largeur*4/3
-        (width, height) = image.size
-        is_sticker_size = abs(width - (height*4)/3) <= 1
-        infos[0] += str(width) + "x" + str(height)
-        return is_sticker_size
-        
-    def nr_by_weight(self, image, response, infos):
-        weight = int(response.headers['content-length'])
-        # En dessous de 15 Ko, considere sticker
-        infos[0] += " ~ " + str(weight/1000) + " ko"
-        return weight < 15000
-        
-    def nr_by_name(self, image, response, infos):
-        name = response.geturl()
-        infos[0] += " ~ " + name
-        for n in self.stick_names:
-            if n in name:
-                # nom de l'image contient un nom de stickers
-                return True
-        return False
-        
-    def nr_by_borders(self, image, response, infos):
-        # Detection des pixels blancs dans les coins
-        (width, height) = image.size
-        corners = [(0,0), (width-1, 0), (width-1,height-1), (0, height-1)]
-        pixels = []
-        for coord in corners:
-            pixels.append(image.getpixel(coord))
-        white_corners = pixels.count((255,255,255,0))
-        infos[0] += " ~ " + str(white_corners) + " corners"
-        return white_corners>1
-        
+        self.display(img_infos)
+        return relevant      
         
     #Traitement des webm
-    def webm_from_site(self, response):
+    def webm_from_site(self, response, slct_fct, alt_name):
         page = response.read()
         webm_url = None
         link_webm = re_to_url_webm(page)
+        if link_webm is None:
+            self.display("/!\ Erreur de decodage de la page, section suivante")
+            return None
         for webm_url_totry in link_webm:
             page_url_parts = parse.urlparse(response.geturl())
             if webm_url_totry[:2] == "//":
@@ -228,7 +247,7 @@ class Jvc_downloader():
                 return webm_url
     
     # Traitement des vocaroos
-    def vocaroo_from_site(self, response):
+    def vocaroo_from_site(self, response, slct_fct, alt_name):
         page_tree = tree_from_page(response.read())
         audio_php = page_tree.xpath('//p/a[@download]/@href')
         res = None
@@ -263,6 +282,7 @@ class Jvc_downloader():
                 self.log.see('end')
             print(str)
 
+            
             
             
             

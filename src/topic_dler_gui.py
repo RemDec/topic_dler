@@ -21,17 +21,20 @@ class Application(Frame):
         self.voca_ok = IntVar()
         self.vars['types_ok'] = (self.img_ok, self.webm_ok, self.voca_ok)
         self.vars['path'] = StringVar()
-        self.vars['path'].set("<current working directory>/nom_topic")
-        self.vars['url'] = StringVar()
-        self.vars['url'].set("<empty URL>")
+        self.vars['path'].set("<current working directory>")
+        self.vars['nf'] = IntVar()
+        self.vars['nf'].set(1)
         self.vars['stick'] = IntVar()
         self.vars['stick'].set(0)
         self.vars['stick_ctrl'] = DoubleVar()
         self.vars['stick_ctrl'].set(1)
+        self.vars['only_op'] = IntVar()
         self.vars['short'] = IntVar()
         self.vars['verb'] = IntVar()
         self.vars['power'] = DoubleVar()
         self.vars['power'].set(1)
+        self.vars['url'] = StringVar()
+        self.vars['url'].set("<empty URL>")
         
         
         self.p = PanedWindow(self, orient=VERTICAL)
@@ -70,15 +73,26 @@ class Application(Frame):
     def modif_path(self):
         new_path = filedialog.askdirectory(title="Sélectionner dossier d'enregistrement")
         if new_path == "":
-            self.vars['path'].set("<current working directory>/nom_topic")
+            self.vars['path'].set("<current working directory>")
         else:
             self.vars['path'].set(new_path)
         
     def fill_path(self, box):
         label_path = Label(box, textvariable=self.vars['path'])
-        btn_path = Button(box, text="...", command=self.modif_path)
-        label_path.pack(side=LEFT)
-        btn_path.pack(side=RIGHT)
+        bot_frame = Frame(box)
+        btn_path = Button(bot_frame, text="...", command=self.modif_path, padx=5)
+        btn_nf = Checkbutton(bot_frame, text="nouveau dossier", variable=self.vars['nf'], padx=20)
+        
+        label_path.pack(side=TOP, fill=X)
+        bot_frame.pack(side=BOTTOM, fill=X)
+        btn_path.pack(side=LEFT)
+        btn_nf.pack(side=RIGHT)
+        
+    # Forumeurs cibles
+    def fill_msg(self, box):
+        btn_op = Checkbutton(box, text="op uniquement", variable=self.vars['only_op'])
+        
+        btn_op.pack(side=LEFT)
         
     # Parametres
     def fill_param(self, box):
@@ -126,7 +140,10 @@ class Application(Frame):
         
         path_box = self.create_named_box("dossier cible")
         self.fill_path(path_box)
-        
+        """
+        msg_box = self.create_named_box("forumeurs cibles")
+        self.fill_msg(msg_box)
+        """
         param_box = self.create_named_box("paramètres")
         self.fill_param(param_box)
         

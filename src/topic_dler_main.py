@@ -96,7 +96,10 @@ def verify_folder_path(path):
 
 def re_to_url_webm(page):
     expr = re.compile('=[^\s]+\.webm')
-    all_found = expr.findall(page.decode('utf-8'))
+    try:
+        all_found = expr.findall(page.decode('utf-8'))
+    except UnicodeDecodeError:
+        return None
     all_found = set([webm_url[2:] for webm_url in all_found])
     return all_found
 
@@ -191,7 +194,6 @@ def is_url_raw_elmt(response, elmt_type):
         
 def name_from_php(url, varname, extension=""):
     try:
-        print(parse.parse_qs(parse.urlparse(url).query)[varname])
         return parse.parse_qs(parse.urlparse(url).query)[varname][0] + extension
     except:
         return url
