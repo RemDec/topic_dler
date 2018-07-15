@@ -81,21 +81,50 @@ class Post():
     
     def __init__(self, post_tree):
         self.post_tree = post_tree
+        self.req = self.init_req()
+        self.op = self.xpath_post(self.req['author'])[0]
+        self.date = self.xpath_post(self.req['date'])[0]
+        self.content_tree = self.xpath_post(self.req['content_tree'])[0]
+        self.ext_urls = self.get_ext_urls()
         
-    def get_author(self):
-        pass
+    def init_req(self):
+        req = {}
+        req['author'] = "(.//@alt)[1]"
+        req['date'] = ".//div[@class='bloc-date-msg']/span/text()"
+        req['content_tree'] = ".//div[@class='bloc-contenu']"
+        req['imgs'] = ".//img[@class='img-shack']/@alt"
+        req['ext_links'] = ".//span/@title | .//span[not(./img)][not(@title)][@class]/text()"
+        return req
         
-    def get_content(self):
-        pass
+    def xpath_post(self, req):
+        return self.post_tree.xpath(req)
         
-    def get_images(self):
-        pass
+    def get_ext_urls(self):
+        return self.content_tree.xpath(self.req['ext_links'])
         
-    def get_webm(self):
-        pass
+    def get_raw_content(self):
+        return self.content_tree.xpath(".//p/text()")
         
-    def get_voca(self):
-        pass
+    def get_images_url(self):
+        return self.content_tree.xpath(self.req['imgs'])
+        
+    def get_webms_url(self):
+        # a ameliorer -> lister tous les sites à webm?
+        return self.ext_urls
+        
+    def get_vocas_url(self):
+        return [voca_url for voca_url in self.ext_urls if "vocaroo.com" in voca_url]
+        
+    def __str__(self):
+        return self.op + " le " + self.date + ":\n " + str(self.ext_urls)
+        
+    def xml_disp(self, only_content = True):
+        import xml.etree.ElementTree as ET
+        if only_content:
+            s = ET.tostring(self.content_tree, encoding="utf-8")
+        else:
+            s = ET.tostring(self.post_tree, encoding="utf-8")
+        return s.decode("utf-8").replace('    ', ' ').replace('>', '>\n')
     
     
 class Topic():
@@ -126,6 +155,7 @@ class Topic():
         req['op'] = "(.//div[@class='inner-head-content']/div[@class='bloc-header']/span)[1]/text()"
         req['max_p'] = "(.//div[@class='bloc-liste-num-page'])[1]/span[position()=last() or position()=last()-1]//text()"
         req['curr_p'] = "(.//div[@class='bloc-liste-num-page'])[1]/span[@class='page-active']//text()"
+        req['all_msg'] = ".//div[@class='bloc-message-forum ']"
         return req
         
     def xpath_topic(self, req):
@@ -139,7 +169,7 @@ class Topic():
             try:
                 p = int(various_res[1])
                 return p
-            except ValueError:
+            except (ValueError, IndexError):
                 return int(various_res[0]) 
         
     def get_nth_page_url(self, n):
@@ -148,6 +178,28 @@ class Topic():
         split_url = self.main_url.split('-')
         split_url[3] = str(n)
         return '-'.join(split_url)
+        
+    def set_page(self, n):
+        url_n = self.get_nth_page_url(n)
+        if url_n is None:
+            return None
+        page_n = open_page(url_n)
+        if page_n is None or type(page_n) is tuple:
+            raise Page_not_foundError(url)
+        self.tree = tree_from_page(page_n)
+        self.main_url = url_n
+        self.curr_page = n
+        self.topic_tree = self.tree.xpath(self.req['topic'])[0]
+        return True
+        
+    def get_all_post(self):
+        return [Post(elmt_post) for elmt_post in self.xpath_topic(self.req['all_msg'])]
+
+    def get_nth_post(self, n): 
+        res = self.xpath_topic("(.//div[@class='bloc-message-forum '])[" + str(n) + "]")
+        if len(res) == 0:
+            return None
+        return Post(res)
         
     def __str__(self):
         return self.title + "\n de " + self.op + " (" + str(self.curr_page) + " | " + str(self.max_page) + " pages)"
@@ -198,12 +250,6 @@ class Jvc_downloader():
     #Boucles sur toutes les pages
     def start_dl(self):
         self.display(str(self.topic))
-        # for num, page_url in enumerate(self.all_topic_pages):
-            # self.display("<==== Page " + str(num+1) + " ====>")
-            # try:
-                # self.fetch_elmts_from_url(page_url)
-            # except timeout:
-                # pass
         for n_page in range(self.topic.max_page):
             self.display("<==== Page " + str(n_page+1) + " ====>")
             try:
@@ -264,7 +310,8 @@ class Jvc_downloader():
         if url in self.all_dl_resources:
             self.display("       *" + reduce_name(url, self.get_name_sep()) + "*")
             return True
-        response = http_request(url)
+        response = http_request(url, keep=False)
+        #self.display(str(response.info()))
         if response is None:
             return None
         elif type(response) is tuple:

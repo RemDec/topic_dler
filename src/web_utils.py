@@ -7,7 +7,7 @@ from lxml import etree
 from socket import timeout
 
 
-def http_request(url, u_a = None):
+def http_request(url, u_a = None, keep = False):
     """
     Fait une requete pour l'url donnée et en retourne l'objet obtenu qui est
     la réponse HTTP headers+data
@@ -16,8 +16,11 @@ def http_request(url, u_a = None):
         user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:61.0) Gecko/20100101 Firefox/61.0'
     else:
         user_agent = u_a
+    my_headers={'User-Agent': user_agent}
+    if keep:
+        my_headers['Connection'] = "Keep-Alive"
     try:
-        req = request.Request(url, data=None, headers={'User-Agent': user_agent})
+        req = request.Request(url, data=None, headers=my_headers)
         return request.urlopen(req, timeout=1)
     except error.HTTPError as err:
         print("Error HTTP", err.code)
@@ -33,8 +36,8 @@ def open_page(url, sv_html=False, filename='page.html'):
     de la réponse à cette requête, ou None si elle n'a pas abouti
     """
     page = http_request(url)
-    if page is None:
-        return None
+    if page is None or type(page) is tuple:
+        return page
     str_page = page.read().decode('UTF-8')
     if sv_html:
         with open(filename, 'w') as p:
