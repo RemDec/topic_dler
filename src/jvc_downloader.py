@@ -68,18 +68,91 @@ class Image_selector():
         pixels = []
         for coord in corners:
             pixels.append(image.getpixel(coord))
-        print(pixels)
         uni_corners = 0
-        if len(pixels[0]) >= 3:
+        if len(image.getbands()) >= 3:
             for p in pixels:
-                if p[0] == p[1] and p[1] == p[2]:
+                if (p[0], p[1], p[2]) == (255, 255, 255):
                     uni_corners += 1
         infos[0] += " ~ " + str(uni_corners) + " corners"
         return uni_corners>1
         
-        
-        
 
+class Post():
+    
+    def __init__(self, post_tree):
+        self.post_tree = post_tree
+        
+    def get_author(self):
+        pass
+        
+    def get_content(self):
+        pass
+        
+    def get_images(self):
+        pass
+        
+    def get_webm(self):
+        pass
+        
+    def get_voca(self):
+        pass
+    
+    
+class Topic():
+    
+    """elmt topic = //div[@id='forum-main-col'] -> indice 0"""
+    """elmt titre = .//span[@id='bloc-title-forum']/text() sur topic -> indice 0"""
+    """elmt max_page = .//div[@class='bloc-liste-num-page'])[1]/span[last()-1]/a/text() sur topic -> ind 0"""
+    """elmt author = topic.xpath("(.//div[@class='inner-head-content']/div[@class='bloc-header']/span)[1]/text()")
+                     faire gaffe a elminier \n et espaces dans réponse"""
+                     
+    def __init__(self, url):
+        self.main_url = url
+        main_page = open_page(url)
+        if main_page is None or type(main_page) is tuple:
+            raise Page_not_foundError(url)
+        self.req = self.init_requests()
+        self.tree = tree_from_page(main_page)
+        self.topic_tree = self.tree.xpath(self.req['topic'])[0]
+        self.title = self.xpath_topic(self.req['title'])[0]
+        self.op = self.xpath_topic(self.req['op'])[0].strip(' \n')
+        self.max_page = self.get_max_page()
+        self.curr_page = int(self.xpath_topic(self.req['curr_p'])[0])
+        
+    def init_requests(self):
+        req = {}
+        req['topic'] = "//div[@id='forum-main-col']"
+        req['title'] = ".//span[@id='bloc-title-forum']/text()"
+        req['op'] = "(.//div[@class='inner-head-content']/div[@class='bloc-header']/span)[1]/text()"
+        req['max_p'] = "(.//div[@class='bloc-liste-num-page'])[1]/span[position()=last() or position()=last()-1]//text()"
+        req['curr_p'] = "(.//div[@class='bloc-liste-num-page'])[1]/span[@class='page-active']//text()"
+        return req
+        
+    def xpath_topic(self, req):
+        return self.topic_tree.xpath(req)
+        
+    def get_max_page(self):
+        various_res = self.topic_tree.xpath(self.req['max_p'])
+        if len(various_res) == 0:
+            return 1
+        else:
+            try:
+                p = int(various_res[1])
+                return p
+            except ValueError:
+                return int(various_res[0]) 
+        
+    def get_nth_page_url(self, n):
+        if n < 1 or n > self.max_page:
+            return None
+        split_url = self.main_url.split('-')
+        split_url[3] = str(n)
+        return '-'.join(split_url)
+        
+    def __str__(self):
+        return self.title + "\n de " + self.op + " (" + str(self.curr_page) + " | " + str(self.max_page) + " pages)"
+        
+        
 class Jvc_downloader():
     
     def __init__(self, params, logwidget=None):
@@ -90,6 +163,7 @@ class Jvc_downloader():
         self.img_sel = Image_selector(params['stick_ctrl'])
         self.log = logwidget
         
+        self.topic = Topic(params['url'])
         
     def init_params(self, params, page):
         self.params = params
@@ -123,10 +197,17 @@ class Jvc_downloader():
     
     #Boucles sur toutes les pages
     def start_dl(self):
-        for num, page_url in enumerate(self.all_topic_pages):
-            self.display("<==== Page " + str(num+1) + " ====>")
+        self.display(str(self.topic))
+        # for num, page_url in enumerate(self.all_topic_pages):
+            # self.display("<==== Page " + str(num+1) + " ====>")
+            # try:
+                # self.fetch_elmts_from_url(page_url)
+            # except timeout:
+                # pass
+        for n_page in range(self.topic.max_page):
+            self.display("<==== Page " + str(n_page+1) + " ====>")
             try:
-                self.fetch_elmts_from_url(page_url)
+                self.fetch_elmts_from_url(self.topic.get_nth_page_url(n_page+1))
             except timeout:
                 pass
         self.display_end()        
@@ -205,7 +286,6 @@ class Jvc_downloader():
                 with open(self.dir + "/" + elmt_name, 'wb+') as elmt_file:
                     elmt_file.write(content)
                     self.num_dl += 1
-                    print(self.all_dl_resources)
             else:
                 self.display("        |_ rejected")
             self.all_dl_resources.add(url)

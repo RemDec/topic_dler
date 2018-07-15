@@ -18,7 +18,7 @@ def http_request(url, u_a = None):
         user_agent = u_a
     try:
         req = request.Request(url, data=None, headers={'User-Agent': user_agent})
-        return request.urlopen(req, timeout=2)
+        return request.urlopen(req, timeout=1)
     except error.HTTPError as err:
         print("Error HTTP", err.code)
         return (err.code, err)
