@@ -29,6 +29,8 @@ class Application(Frame):
         self.vars['stick_ctrl'] = DoubleVar()
         self.vars['stick_ctrl'].set(1)
         self.vars['only_op'] = IntVar()
+        self.vars['sel_pseudos'] = []
+        self.vars['pseudo'] = StringVar()
         self.vars['short'] = IntVar()
         self.vars['verb'] = IntVar()
         self.vars['power'] = DoubleVar()
@@ -89,10 +91,56 @@ class Application(Frame):
         btn_nf.pack(side=RIGHT)
         
     # Forumeurs cibles
+    def add_to_list(self, pseudo):
+        pseudo = pseudo.strip('\n ')
+        if pseudo not in self.vars['sel_pseudos'] and pseudo != "":
+            self.vars['sel_pseudos'].append(pseudo)
+            self.widgets['ps_listbox'].insert(END, pseudo)
+        
+    def del_from_list(self):
+        delta = 0
+        for ind in self.widgets['ps_listbox'].curselection():
+            del self.vars['sel_pseudos'][ind-delta]
+            self.widgets['ps_listbox'].delete(ind-delta)
+            delta += 1
+        
+    def fill_listbox(self):
+        for p in self.vars['sel_pseudos']:
+            self.widgets['ps_listbox'].insert(END, p)
+        
+    def add_new_pseudo(self, event=None):
+        self.add_to_list(self.vars['pseudo'].get())
+        self.vars['pseudo'].set("")
+    
+    def fill_pseudo(self, box):
+        btn_add = Button(box, text="Ajouter", command=self.add_new_pseudo)
+        entry_pseudo = Entry(box, textvariable=self.vars['pseudo'])
+        entry_pseudo.bind('<Return>', self.add_new_pseudo)
+        
+        entry_pseudo.pack(side=LEFT, expand = True, fill=X)
+        btn_add.pack(side=RIGHT)
+        
+    
+    def disp_pseudo_frame(self):
+        ps_frame = Toplevel(self)
+        list_pseudo = Listbox(ps_frame, selectmode=MULTIPLE)
+        self.widgets['ps_listbox'] = list_pseudo
+        self.fill_listbox()
+        add_box = self.create_named_box("ajout de pseudos", ps_frame)
+        self.fill_pseudo(add_box)
+        btn_del = Button(ps_frame, text="Supprimer sélection", command=self.del_from_list)
+        
+        list_pseudo.pack(side=TOP, expand=True, fill=X)
+        add_box.pack(side=BOTTOM, expand=True, fill=X)
+        btn_del.pack(side=BOTTOM)
+        
+    
     def fill_msg(self, box):
-        btn_op = Checkbutton(box, text="op uniquement", variable=self.vars['only_op'])
+        btn_op = Checkbutton(box, text="cibler auteur", variable=self.vars['only_op'])
+        btn_others = Button(box, text="autres", command=self.disp_pseudo_frame)
         
         btn_op.pack(side=LEFT)
+        btn_others.pack(side=RIGHT)
         
     # Parametres
     def fill_param(self, box):
@@ -126,9 +174,14 @@ class Application(Frame):
         self.v_elmts.append(comp_frame)
         
     # Initialisation
-    def create_named_box(self, boxname):
-        box = LabelFrame(self.p, text=boxname, padx=10, pady=10)
-        self.v_elmts.append(box)
+    def create_named_box(self, boxname, parent=None):
+        given_parent =True
+        if parent is None:
+            parent = self.p
+            given_parent = False
+        box = LabelFrame(parent, text=boxname, padx=10, pady=10)
+        if not(given_parent):
+            self.v_elmts.append(box)
         return box
         
     def create_widgets(self):
@@ -140,10 +193,10 @@ class Application(Frame):
         
         path_box = self.create_named_box("dossier cible")
         self.fill_path(path_box)
-        """
+
         msg_box = self.create_named_box("forumeurs cibles")
         self.fill_msg(msg_box)
-        """
+
         param_box = self.create_named_box("paramètres")
         self.fill_param(param_box)
         
@@ -163,7 +216,9 @@ class Application(Frame):
             try:
                 frozen[k]= v.get()
             except AttributeError:
-                if isinstance(v, tuple):
+                if isinstance(v, list):
+                  t = v  
+                elif isinstance(v, tuple):
                     t = ()
                     for e in v:
                         try:

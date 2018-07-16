@@ -80,17 +80,21 @@ class Image_selector():
 class Post():
     
     def __init__(self, post_tree):
-        self.post_tree = post_tree
-        self.req = self.init_req()
-        self.op = self.xpath_post(self.req['author'])[0]
-        self.date = self.xpath_post(self.req['date'])[0]
-        self.content_tree = self.xpath_post(self.req['content_tree'])[0]
-        self.ext_urls = self.get_ext_urls()
+        try:
+            self.post_tree = post_tree
+            self.req = self.init_req()
+            self.op = self.format_op_name()
+            self.date = self.format_date()
+            self.content_tree = self.xpath_post(self.req['content_tree'])[0]
+            self.ext_urls = self.get_ext_urls()
+        except IndexError as e:
+            print(e)
+            print(self.xml_disp(only_content=False))
         
     def init_req(self):
         req = {}
         req['author'] = "(.//@alt)[1]"
-        req['date'] = ".//div[@class='bloc-date-msg']/span/text()"
+        req['date'] = ".//div[@class='bloc-date-msg']//text()"
         req['content_tree'] = ".//div[@class='bloc-contenu']"
         req['imgs'] = ".//img[@class='img-shack']/@alt"
         req['ext_links'] = ".//span/@title | .//span[not(./img)][not(@title)][@class]/text()"
@@ -99,24 +103,39 @@ class Post():
     def xpath_post(self, req):
         return self.post_tree.xpath(req)
         
+    def format_date(self):
+        res = self.xpath_post(self.req['date'])
+        if not res:
+            return "unknown date"
+        date = "".join(res)
+        date = date.lstrip('\n ').rstrip('\n ')
+        return date
+        
+    def format_op_name(self):
+        res = self.xpath_post(self.req['author'])
+        if not res:
+            return "Pseudo supprimé"
+        else:
+            return res[0]
+    
     def get_ext_urls(self):
-        return self.content_tree.xpath(self.req['ext_links'])
+        return list(dict.fromkeys(self.content_tree.xpath(self.req['ext_links'])))
         
     def get_raw_content(self):
         return self.content_tree.xpath(".//p/text()")
         
     def get_images_url(self):
-        return self.content_tree.xpath(self.req['imgs'])
+        return list(dict.fromkeys(self.content_tree.xpath(self.req['imgs'])))
         
     def get_webms_url(self):
         # a ameliorer -> lister tous les sites à webm?
-        return self.ext_urls
+        return [webm_url for webm_url in self.ext_urls if "http" in webm_url]
         
     def get_vocas_url(self):
         return [voca_url for voca_url in self.ext_urls if "vocaroo.com" in voca_url]
         
     def __str__(self):
-        return self.op + " le " + self.date + ":\n " + str(self.ext_urls)
+        return self.op + " le " + self.date + ":\n URLS " + str(self.ext_urls)
         
     def xml_disp(self, only_content = True):
         import xml.etree.ElementTree as ET
@@ -144,9 +163,13 @@ class Topic():
         self.tree = tree_from_page(main_page)
         self.topic_tree = self.tree.xpath(self.req['topic'])[0]
         self.title = self.xpath_topic(self.req['title'])[0]
-        self.op = self.xpath_topic(self.req['op'])[0].strip(' \n')
+        self.main_page = int(self.xpath_topic(self.req['curr_p'])[0])
         self.max_page = self.get_max_page()
-        self.curr_page = int(self.xpath_topic(self.req['curr_p'])[0])
+        
+        # Retour a la page 1 pour trouver l'auteur
+        self.set_page(1)
+        self.op = self.xpath_topic(self.req['op'])[0].strip(' \n')
+
         
     def init_requests(self):
         req = {}
@@ -187,13 +210,21 @@ class Topic():
         if page_n is None or type(page_n) is tuple:
             raise Page_not_foundError(url)
         self.tree = tree_from_page(page_n)
-        self.main_url = url_n
-        self.curr_page = n
         self.topic_tree = self.tree.xpath(self.req['topic'])[0]
+        self.curr_page = n
+        self.curr_url = url_n
         return True
         
-    def get_all_post(self):
-        return [Post(elmt_post) for elmt_post in self.xpath_topic(self.req['all_msg'])]
+    def get_all_post(self, sel_posters=[]):
+        posts = []
+        for elmt_post in self.xpath_topic(self.req['all_msg']):
+            p = Post(elmt_post)
+            if len(sel_posters) > 0:
+                if p.op in sel_posters:
+                    posts.append(p)
+            else:
+                posts.append(p)     
+        return posts
 
     def get_nth_post(self, n): 
         res = self.xpath_topic("(.//div[@class='bloc-message-forum '])[" + str(n) + "]")
@@ -202,29 +233,30 @@ class Topic():
         return Post(res)
         
     def __str__(self):
-        return self.title + "\n de " + self.op + " (" + str(self.curr_page) + " | " + str(self.max_page) + " pages)"
+        return self.title + "\n de " + self.op + " (" + str(self.main_page) + " | " + str(self.max_page) + " pages)"
         
         
 class Jvc_downloader():
     
     def __init__(self, params, logwidget=None):
-        main_page = open_page(params['url'])
-        if main_page is None or type(main_page) is tuple:
-            raise Page_not_foundError(params['url'])
-        self.init_params(params, main_page)
+        self.topic = Topic(params['url'])
+        self.init_params(params)
         self.img_sel = Image_selector(params['stick_ctrl'])
         self.log = logwidget
         
-        self.topic = Topic(params['url'])
         
-    def init_params(self, params, page):
+    def init_params(self, params):
         self.params = params
         self.verb = params['verb']
-        self.tree = tree_from_page(page)
-        self.dir = self.init_dir(self.tree)
-        self.all_topic_pages = sorted([params['url']] + self.others_pages_jvc(self.tree))
+        self.dir = self.init_dir(self.topic.tree)
+        self.sel_posters = SortedList()
         self.all_dl_resources = SortedList()
+        self.all_used_name = SortedList()
         self.num_dl = 0
+        
+        if self.params['only_op']:
+            self.sel_posters.add(self.topic.op)
+        self.sel_posters.update(self.params['sel_pseudos'])
         
         
     def init_dir(self, tree):    
@@ -241,64 +273,69 @@ class Jvc_downloader():
         os.makedirs(final, exist_ok=True)
         return final
             
-    #Recherche des toutes les pages
-    def others_pages_jvc(self, curr_page_tree):
-        other_p = curr_page_tree.xpath('//div[@class="bloc-liste-num-page"]//@href')
-        no_doubles = set(["http://www.jeuxvideo.com"+cut_link for cut_link in other_p])
-        return list(no_doubles)
     
     #Boucles sur toutes les pages
     def start_dl(self):
         self.display(str(self.topic))
+        if len(self.sel_posters) > 0:
+            self.display("Recherche pour les pseudos suivants :\n"+str_sorted_list(self.sel_posters))
         for n_page in range(self.topic.max_page):
             self.display("<==== Page " + str(n_page+1) + " ====>")
             try:
-                self.fetch_elmts_from_url(self.topic.get_nth_page_url(n_page+1))
+                get_ok = self.topic.set_page(n_page+1)
+                if get_ok:
+                    self.fetch_elmts_from_url(self.topic.topic_tree)
             except timeout:
                 pass
         self.display_end()        
         
                 
     #Recherche+dl de tous les elmts
-    def fetch_elmts_from_url(self, url):
+    def fetch_elmts_from_url(self, page_tree):
         types_ok = self.params['types_ok']
-        str_page = open_page(url)
-        tree = tree_from_page(str_page)
-        all_url = find_all_url(tree.xpath('//div[@class="bloc-contenu"]//span/text()'))
+        all_urls = ([], [], [])
+        (all_img_urls, all_webm_urls, all_voca_urls) = all_urls
+        for post in self.topic.get_all_post(self.sel_posters):
+            all_img_urls.extend(post.get_images_url())
+            all_webm_urls.extend(post.get_webms_url())
+            all_voca_urls.extend(post.get_vocas_url())
         
         if types_ok[0]:
             # Recherche et dl des images
-            self.fetch_images(tree)
+            self.fetch_images(list(dict.fromkeys(all_img_urls)))
                     
         if types_ok[1]:
             # Recherche et dl des webm
-            self.fetch_webms(tree, find_webm_url(all_url))
+            self.fetch_webms(list(dict.fromkeys(all_webm_urls)))
             
         if types_ok[2]:
             # Recherche et dl des vocaroo
-            self.fetch_vocaroos(tree, find_vocaroo_url(all_url))
+            self.fetch_vocaroos(list(dict.fromkeys(all_voca_urls)))
             
             
-    def fetch_images(self, tree):
+    def fetch_images(self, urls):
         self.display("   <---- Images ---->")
+        #self.display("URLS : " + str(urls))
         slct_img_fct = self.is_img_relevant if self.params['stick'] in [1, 2] else None
-        for img_url in tree.xpath('//img[@class="img-shack"]/@alt'):
+        for img_url in urls:
             try:
                 self.fetch_elmt_oftype(img_url, "image", self.img_from_noel, slct_img_fct)
             except timeout:
                 pass
         
-    def fetch_webms(self, tree, found_webm_url):
+    def fetch_webms(self, urls):
         self.display("   <---- Videos ---->")
-        for webm_url in found_webm_url:
+        #self.display("URLS : " + str(urls))
+        for webm_url in urls:
             try:
                 self.fetch_elmt_oftype(webm_url, "video", self.webm_from_site)
             except timeout:
                 pass
                 
-    def fetch_vocaroos(self, tree, found_voca_url):
+    def fetch_vocaroos(self, urls):
         self.display("   <---- Vocaroos ---->")
-        for voca_url in found_voca_url:
+        #self.display("URLS : " + str(urls))
+        for voca_url in urls:
             try:
                 self.fetch_elmt_oftype(voca_url, "audio", self.vocaroo_from_site)
             except timeout:
@@ -311,20 +348,16 @@ class Jvc_downloader():
             self.display("       *" + reduce_name(url, self.get_name_sep()) + "*")
             return True
         response = http_request(url, keep=False)
-        #self.display(str(response.info()))
         if response is None:
             return None
         elif type(response) is tuple:
-            self.display("url :" + url)
-            self.display("error code :"+ str(response[0]))
-            self.display("error content :"+ str(response[1]))
+            self.display_http_error(url, response)
             return None
         (res_type_ok, res_format) = is_url_raw_elmt(response, oftype)
         if res_type_ok:
             # On a la ressource telle quelle
             content = response.read()
-            to_reduce = alt_name if alt_name is not None else url
-            elmt_name = reduce_name(to_reduce, self.get_name_sep(), res_format)
+            elmt_name = self.formate_name(url, res_format, alt_name)
             self.display("       " + elmt_name)
             accept = True
             if slct_fct is not None:
@@ -332,6 +365,7 @@ class Jvc_downloader():
             if accept:
                 with open(self.dir + "/" + elmt_name, 'wb+') as elmt_file:
                     elmt_file.write(content)
+                    self.all_used_name.add(elmt_name)
                     self.num_dl += 1
             else:
                 self.display("        |_ rejected")
@@ -340,6 +374,16 @@ class Jvc_downloader():
         else:
             # On doit la chercher sur la page recue
             alt_fct(response, slct_fct, alt_name)
+            
+    def formate_name(self, base_url, extension, alt_name):
+        to_reduce = alt_name if alt_name is not None else base_url
+        elmt_name = reduce_name(to_reduce, self.get_name_sep(), extension)
+        if not(elmt_name in self.all_used_name):
+            return elmt_name
+        ind = 1
+        while "("+str(ind)+")"+elmt_name in self.all_used_name:
+            ind += 1
+        return "("+str(ind)+")"+elmt_name
                 
     #Traitement image
     def img_from_noel(self, response, slct_fct=None, alt_name=None):
@@ -361,7 +405,11 @@ class Jvc_downloader():
         
     #Traitement des webm
     def webm_from_site(self, response, slct_fct, alt_name):
-        page = response.read()
+        try:
+            page = response.read().decode('utf-8')
+        except UnicodeDecodeError as e:
+            self.display("Page illisible, erreur d'encodage :" + response.geturl())
+            return None
         webm_url = None
         link_webm = re_to_url_webm(page)
         if link_webm is None:
@@ -401,6 +449,12 @@ class Jvc_downloader():
             return minimum + ['-']
         else:
             return minimum
+            
+    def display_http_error(self, url, response):
+        self.display("----------------------------------------------")
+        self.display("url :" + url)
+        self.display("error :"+ str(response[1]))
+        self.display("----------------------------------------------")
             
     def display_end(self):
         s = "**" + str(self.num_dl)+ " fichiers dl dans " +self.dir+ " **"

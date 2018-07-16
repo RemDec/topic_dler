@@ -39,13 +39,22 @@ def verify_folder_path(path):
     return os.path.isdir(path) and os.access(path, os.W_OK)
     
 
-def re_to_url_webm(page):
+def re_to_url_webm(str_page):
     expr = re.compile('=[^\s]+\.webm')
     try:
-        all_found = expr.findall(page.decode('utf-8'))
+        all_found = expr.findall(str_page)
     except UnicodeDecodeError:
         return None
     all_found = set([webm_url[2:] for webm_url in all_found])
     return all_found
+    
+def str_sorted_list(l):
+    if len(l) == 0:
+        return "[ ]"
+    s = "[" + str(l[0])
+    for e in l[1:]:
+        s += ", " + str(e)
+    return s + "]"
+    
     
     

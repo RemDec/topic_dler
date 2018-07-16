@@ -19,4 +19,5 @@ page = topic.get_all_post()
 for msg in page:
     print("\n--------------------------------------")
     print(msg)
-    #print(msg.xml_disp())
+    print(msg.xml_disp(only_content=False))
+
