@@ -73,7 +73,15 @@ def name_from_php(url, varname, extension=""):
     except:
         return url
 
-
+def get_n_useragents(n):
+    all_ua = ['Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:61.0) Gecko/20100101 Firefox/61.0',
+              'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:34.0) Gecko/20100101 Firefox/34.0',
+              'Mozilla/5.0 (Android; Tablet; rv:19.0) Gecko/19.0 Firefox/19.0',
+              'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; fr; rv:1.9.0.3) Gecko/2008092414 Firefox/3.0.3',
+              'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.99 Safari/537.36',
+              'Mozilla/5.0 (Windows NT 6.3; Trident/7.0; rv:11.0) like Gecko',
+              'Mozilla/5.0 (X11; Linux x86_64; rv:2.0.1) Gecko/20100101 Firefox/4.0.1']
+    return all_ua[n % len(all_ua)]
 def find_all_url(url_list):
     return sorted(list(set([url for url in url_list if "http" in url])))
 

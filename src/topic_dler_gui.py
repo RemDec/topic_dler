@@ -34,7 +34,7 @@ class Application(Frame):
         self.vars['short'] = IntVar()
         self.vars['verb'] = IntVar()
         self.vars['power'] = DoubleVar()
-        self.vars['power'].set(1)
+        self.vars['power'].set(0.5)
         self.vars['url'] = StringVar()
         self.vars['url'].set("<empty URL>")
         
@@ -118,7 +118,7 @@ class Application(Frame):
         entry_pseudo.bind('<Return>', self.add_new_pseudo)
         
         entry_pseudo.pack(side=LEFT, expand = True, fill=X)
-        btn_add.pack(side=RIGHT)
+        btn_add.pack(side=RIGHT, padx=10)
         
     
     def disp_pseudo_frame(self):

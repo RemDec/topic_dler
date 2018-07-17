@@ -208,7 +208,7 @@ class Topic():
             return None
         page_n = open_page(url_n)
         if page_n is None or type(page_n) is tuple:
-            raise Page_not_foundError(url)
+            raise Page_not_foundError(url_n)
         self.tree = tree_from_page(page_n)
         self.topic_tree = self.tree.xpath(self.req['topic'])[0]
         self.curr_page = n
@@ -243,7 +243,8 @@ class Jvc_downloader():
         self.init_params(params)
         self.img_sel = Image_selector(params['stick_ctrl'])
         self.log = logwidget
-        
+        self.ua_list = get_n_useragents(6)
+        self.ind_ua = 0
         
     def init_params(self, params):
         self.params = params
@@ -252,6 +253,7 @@ class Jvc_downloader():
         self.sel_posters = SortedList()
         self.all_dl_resources = SortedList()
         self.all_used_name = SortedList()
+        self.denied_req = []
         self.num_dl = 0
         
         if self.params['only_op']:
@@ -287,9 +289,30 @@ class Jvc_downloader():
                     self.fetch_elmts_from_url(self.topic.topic_tree)
             except timeout:
                 pass
+            self.retry_connection()
+        self.retry_connection()
         self.display_end()        
         
-                
+    def retry_connection(self):
+        if not self.denied_req:
+            return None
+        img_urls = [u for u in self.denied_req if "noel" in u]
+        self.display("\nTentatives de reconnexion (" + str(len(img_urls)) + ") :\n" + str(img_urls))
+        postpose = self.params['power'] > 0.8
+        postposed = set()
+        
+        nbr_try = int(int(self.params['power']*10)/2)
+        for i in range(nbr_try):
+            if not self.denied_req:
+                return None
+            self.display("  Tentative " + str(i+1))
+            self.ind_ua = (self.ind_ua + 1) % len(self.ua_list)
+            self.denied_req = []
+            self.fetch_images(img_urls)
+            if postpose:
+                postposed.update(self.denied_req)
+        self.denied_req = list(postposed) if postposed else []
+    
     #Recherche+dl de tous les elmts
     def fetch_elmts_from_url(self, page_tree):
         types_ok = self.params['types_ok']
@@ -347,11 +370,11 @@ class Jvc_downloader():
         if url in self.all_dl_resources:
             self.display("       *" + reduce_name(url, self.get_name_sep()) + "*")
             return True
-        response = http_request(url, keep=False)
+        response = http_request(url, u_a=self.ua_list[self.ind_ua], keep=False)
         if response is None:
             return None
         elif type(response) is tuple:
-            self.display_http_error(url, response)
+            self.report_http_error(url, response)
             return None
         (res_type_ok, res_format) = is_url_raw_elmt(response, oftype)
         if res_type_ok:
@@ -450,11 +473,18 @@ class Jvc_downloader():
         else:
             return minimum
             
-    def display_http_error(self, url, response):
-        self.display("----------------------------------------------")
-        self.display("url :" + url)
-        self.display("error :"+ str(response[1]))
-        self.display("----------------------------------------------")
+    def report_http_error(self, url, response):
+        try:
+            if int(response[0]) == 503:
+                self.denied_req.append(url)
+            else:
+                self.display("----------------------------------------------")
+                self.display("url :" + url)
+                self.display("error :"+ str(response[1]))
+                self.display("----------------------------------------------")
+        except ValueError:
+            pass
+
             
     def display_end(self):
         s = "**" + str(self.num_dl)+ " fichiers dl dans " +self.dir+ " **"
