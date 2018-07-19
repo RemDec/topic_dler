@@ -4,9 +4,10 @@
 from tkinter import *
 from tkinter import filedialog
 from jvc_downloader import *
-import threading
-import sys
-from os import path
+from os import path, getenv
+from subprocess import run
+import threading, sys, subprocess
+
 
 class Application(Frame):
     def __init__(self, master=None):
@@ -24,6 +25,8 @@ class Application(Frame):
         self.vars['path'].set("<current working directory>")
         self.vars['nf'] = IntVar()
         self.vars['nf'].set(1)
+        self.vars['open_explorer'] = IntVar()
+        self.vars['open_explorer'].set(1)
         self.vars['stick'] = IntVar()
         self.vars['stick'].set(0)
         self.vars['stick_ctrl'] = DoubleVar()
@@ -32,6 +35,7 @@ class Application(Frame):
         self.vars['sel_pseudos'] = []
         self.vars['pseudo'] = StringVar()
         self.vars['short'] = IntVar()
+        self.vars['auto_names'] = IntVar()
         self.vars['verb'] = IntVar()
         self.vars['power'] = DoubleVar()
         self.vars['power'].set(0.5)
@@ -83,11 +87,13 @@ class Application(Frame):
         label_path = Label(box, textvariable=self.vars['path'])
         bot_frame = Frame(box)
         btn_path = Button(bot_frame, text="...", command=self.modif_path, padx=5)
+        btn_oe = Checkbutton(bot_frame, text="post-ouverture", variable=self.vars['open_explorer'])
         btn_nf = Checkbutton(bot_frame, text="nouveau dossier", variable=self.vars['nf'], padx=20)
         
         label_path.pack(side=TOP, fill=X)
         bot_frame.pack(side=BOTTOM, fill=X)
         btn_path.pack(side=LEFT)
+        btn_oe.pack(side=RIGHT)
         btn_nf.pack(side=RIGHT)
         
     # Forumeurs cibles
@@ -113,7 +119,7 @@ class Application(Frame):
         self.vars['pseudo'].set("")
     
     def fill_pseudo(self, box):
-        btn_add = Button(box, text="Ajouter", command=self.add_new_pseudo)
+        btn_add = Button(box, text="Ajouter", command=self.add_new_pseudo, padx=10)
         entry_pseudo = Entry(box, textvariable=self.vars['pseudo'])
         entry_pseudo.bind('<Return>', self.add_new_pseudo)
         
@@ -123,12 +129,13 @@ class Application(Frame):
     
     def disp_pseudo_frame(self):
         ps_frame = Toplevel(self)
+        ps_frame.title("Ciblage des forumeurs")
         list_pseudo = Listbox(ps_frame, selectmode=MULTIPLE)
         self.widgets['ps_listbox'] = list_pseudo
         self.fill_listbox()
         add_box = self.create_named_box("ajout de pseudos", ps_frame)
         self.fill_pseudo(add_box)
-        btn_del = Button(ps_frame, text="Supprimer sélection", command=self.del_from_list)
+        btn_del = Button(ps_frame, text="Supprimer sélection", command=self.del_from_list, pady=2)
         
         list_pseudo.pack(side=TOP, expand=True, fill=X)
         add_box.pack(side=BOTTOM, expand=True, fill=X)
@@ -144,17 +151,25 @@ class Application(Frame):
         
     # Parametres
     def fill_param(self, box):
-        btn_short = Checkbutton(box, text="abréviations", padx=1, variable=self.vars['short'])
+        comp_frame = Frame(box)
+        comp_frame2 = Frame(box)
+        btn_short = Checkbutton(comp_frame, text="abréviations", padx=7, variable=self.vars['short'])
         btn_short.select()
-        btn_verb = Checkbutton(box, text="verbeux", variable=self.vars['verb'])
-        btn_verb.select()        
-        label_power = Label(box, text="puissance:")
-        slide = Scale(box, variable=self.vars['power'], from_=0, to=1, orient=HORIZONTAL, resolution=0.1)
+        btn_verb = Checkbutton(comp_frame, text="verbeux", padx=7, variable=self.vars['verb'])
+        btn_verb.select()
+        btn_names = Checkbutton(comp_frame, text="noms autos", padx=7, variable=self.vars['auto_names'])
+        label_power = Label(comp_frame2, text="puissance:")
+        slide = Scale(comp_frame2, variable=self.vars['power'], from_=0, to=1, orient=HORIZONTAL, resolution=0.1)
+
         
         btn_short.pack(side=LEFT)
         btn_verb.pack(side=LEFT)
+        btn_names.pack(side=RIGHT)
         slide.pack(side=RIGHT)
         label_power.pack(side=RIGHT)
+
+        comp_frame.pack(side=TOP)
+        comp_frame2.pack(side=BOTTOM)
     
     # Input de l'URL
     def clean_entry(self, event):
@@ -252,7 +267,14 @@ class Jvc_dl_thread(threading.Thread):
         if self.jvc_dl.verb:
             self.log.delete("0.0", END)
         self.jvc_dl.start_dl()
+        self.open_explorer()
         
+    def open_explorer(self):
+        if os.name == 'nt' and self.jvc_dl.params['open_explorer']:
+            path = os.path.normpath(self.jvc_dl.dir)
+            FILEBROWSER_PATH = os.path.join(os.getenv('WINDIR'), 'explorer.exe')
+            if os.path.isdir(path):
+                subprocess.run([FILEBROWSER_PATH, path])
         
 if __name__ == "__main__":
 

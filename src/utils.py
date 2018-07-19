@@ -14,6 +14,8 @@ def reduce_name(url, sep_list=['/', '-'], ext=None):
             ext = ext[:ext.index(',')]
         if not(name.endswith('.'+ext)):
             name += '.'+ext
+    while len(name) > 75:
+        name = name[30:]
     return name
     
     

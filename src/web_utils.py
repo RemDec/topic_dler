@@ -29,6 +29,8 @@ def http_request(url, u_a = None, keep = False):
         print("URL incorrect")
     except timeout:
         print("Timeout")
+    except ssl.SSLWantReadError as e:
+        print("Unknown error : " + str(e))
         
 def open_page(url, sv_html=False, filename='page.html'):
     """

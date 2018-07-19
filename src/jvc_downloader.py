@@ -73,6 +73,8 @@ class Image_selector():
             for p in pixels:
                 if (p[0], p[1], p[2]) == (255, 255, 255):
                     uni_corners += 1
+                elif len(p) == 4 and p[3] == 0:
+                    uni_corners += 1
         infos[0] += " ~ " + str(uni_corners) + " corners"
         return uni_corners>1
         
@@ -318,11 +320,13 @@ class Jvc_downloader():
         types_ok = self.params['types_ok']
         all_urls = ([], [], [])
         (all_img_urls, all_webm_urls, all_voca_urls) = all_urls
+        page_str = ""
         for post in self.topic.get_all_post(self.sel_posters):
             all_img_urls.extend(post.get_images_url())
             all_webm_urls.extend(post.get_webms_url())
             all_voca_urls.extend(post.get_vocas_url())
-        
+            page_str += str(post) + "\n" + "".join(post.get_raw_content()) + "\n-----------------------------\n"
+            
         if types_ok[0]:
             # Recherche et dl des images
             self.fetch_images(list(dict.fromkeys(all_img_urls)))
@@ -335,6 +339,8 @@ class Jvc_downloader():
             # Recherche et dl des vocaroo
             self.fetch_vocaroos(list(dict.fromkeys(all_voca_urls)))
             
+        # with open(self.dir + "/" + str(self.topic.curr_page), 'w+') as elmt_file:
+            # elmt_file.write(page_str)
             
     def fetch_images(self, urls):
         self.display("   <---- Images ---->")
@@ -401,6 +407,11 @@ class Jvc_downloader():
     def formate_name(self, base_url, extension, alt_name):
         to_reduce = alt_name if alt_name is not None else base_url
         elmt_name = reduce_name(to_reduce, self.get_name_sep(), extension)
+        if self.params['auto_names']:
+            if "." in elmt_name:
+                elmt_name = str(self.num_dl) + elmt_name[(elmt_name.rfind(".")):]
+            else:
+                elmt_name = str(self.num_dl)
         if not(elmt_name in self.all_used_name):
             return elmt_name
         ind = 1
