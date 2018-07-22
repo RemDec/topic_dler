@@ -6,7 +6,15 @@ from urllib import request, error, parse
 from lxml import etree
 from socket import timeout
 
-
+        
+class Page_not_foundError(Exception):
+    def __init__(self, url):
+        self.url = url
+    def __str__(self):
+        return "Error 404 - page " + self.url + " not found." 
+        
+        
+        
 def http_request(url, u_a = None, keep = False):
     """
     Fait une requete pour l'url donnée et en retourne l'objet obtenu qui est

@@ -20,7 +20,8 @@ class Application(Frame):
         self.img_ok = IntVar()
         self.webm_ok = IntVar()
         self.voca_ok = IntVar()
-        self.vars['types_ok'] = (self.img_ok, self.webm_ok, self.voca_ok)
+        self.post_ok = IntVar()
+        self.vars['types_ok'] = (self.img_ok, self.webm_ok, self.voca_ok, self.post_ok)
         self.vars['path'] = StringVar()
         self.vars['path'].set("<current working directory>")
         self.vars['nf'] = IntVar()
@@ -58,9 +59,11 @@ class Application(Frame):
         btn_webm.select()
         btn_voca = Checkbutton(box, text="vocaroo", padx=10, variable=self.voca_ok)
         btn_voca.select()
+        btn_posts = Checkbutton(box, text="posts", padx=10, variable=self.post_ok)
         btn_img.pack(side=LEFT)
         btn_webm.pack(side=LEFT)
         btn_voca.pack(side=LEFT)
+        btn_posts.pack(side=LEFT)
         
     # Controle stickers
     def fill_stickers(self, box):
@@ -253,7 +256,8 @@ class Application(Frame):
             dl_thread.start()
         except Page_not_foundError as e:
             print(e)
-        
+            self.log.insert('end', str(e) +"\n")
+            self.log.see('end')
 
 
 class Jvc_dl_thread(threading.Thread):

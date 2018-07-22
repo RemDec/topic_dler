@@ -3,240 +3,12 @@
 
 from utils import *
 from web_utils import *
+from res_selectors import *
+from jvc_elements import *
 from sortedcontainers import SortedList
 from PIL import Image
 from io import BytesIO
-        
-class Page_not_foundError(Exception):
-    def __init__(self, url):
-        self.url = url
-    def __str__(self):
-        return "Error 404 - page " + self.url + " not found." 
-        
-class Image_selector():
-    
-    def __init__(self, stickers_control, bareme=[0, 0.3, 0.5, 0.8]):
-        all_fct = [self.stick_by_size, self.stick_by_weight,
-                    self.stick_by_name, self.stick_by_borders]
-        self.used_fct = []
-        for i, b_val in enumerate(bareme):
-            if i >= len(all_fct) or b_val > stickers_control:
-                break
-            else:
-                self.used_fct.append( (b_val, all_fct[i]) )
-        
-        self.stick_names = ["ris", "jes", "stick", "larry", "chancla", "issou", "reup"]
-             
-    def is_sticker(self, image, response, redirect):
-        img_infos = ["        |"]
-        if redirect:
-            f = self.used_fct[1:]
-        else:
-            f = self.used_fct
-        for (_, detect_fct) in f:
-            if detect_fct(image, response, img_infos):
-                return (True, ('').join(img_infos))
-        return (False, ('').join(img_infos))
-        
-        
-    def stick_by_size(self, image, response, infos):
-        #Les stickers suivent une taille de ratio hauteur = largeur*4/3
-        (width, height) = image.size
-        is_sticker_size = abs(width - (height*4)/3) <= 1
-        infos[0] += str(width) + "x" + str(height)
-        return is_sticker_size
-        
-    def stick_by_weight(self, image, response, infos):
-        weight = int(response.headers['content-length'])
-        # En dessous de 15 Ko, considere sticker
-        infos[0] += " ~ " + str(weight/1000) + " ko"
-        return weight < 15000
-        
-    def stick_by_name(self, image, response, infos):
-        name = response.geturl()
-        infos[0] += " ~ " + name
-        for n in self.stick_names:
-            if n in name:
-                # nom de l'image contient un nom de stickers
-                return True
-        return False
-        
-    def stick_by_borders(self, image, response, infos):
-        # Detection des pixels blancs dans les coins
-        (width, height) = image.size
-        corners = [(0,0), (width-1, 0), (width-1,height-1), (0, height-1)]
-        pixels = []
-        for coord in corners:
-            pixels.append(image.getpixel(coord))
-        uni_corners = 0
-        if len(image.getbands()) >= 3:
-            for p in pixels:
-                if (p[0], p[1], p[2]) == (255, 255, 255):
-                    uni_corners += 1
-                elif len(p) == 4 and p[3] == 0:
-                    uni_corners += 1
-        infos[0] += " ~ " + str(uni_corners) + " corners"
-        return uni_corners>1
-        
 
-class Post():
-    
-    def __init__(self, post_tree):
-        try:
-            self.post_tree = post_tree
-            self.req = self.init_req()
-            self.op = self.format_op_name()
-            self.date = self.format_date()
-            self.content_tree = self.xpath_post(self.req['content_tree'])[0]
-            self.ext_urls = self.get_ext_urls()
-        except IndexError as e:
-            print(e)
-            print(self.xml_disp(only_content=False))
-        
-    def init_req(self):
-        req = {}
-        req['author'] = "(.//@alt)[1]"
-        req['date'] = ".//div[@class='bloc-date-msg']//text()"
-        req['content_tree'] = ".//div[@class='bloc-contenu']"
-        req['imgs'] = ".//img[@class='img-shack']/@alt"
-        req['ext_links'] = ".//span/@title | .//span[not(./img)][not(@title)][@class]/text()"
-        return req
-        
-    def xpath_post(self, req):
-        return self.post_tree.xpath(req)
-        
-    def format_date(self):
-        res = self.xpath_post(self.req['date'])
-        if not res:
-            return "unknown date"
-        date = "".join(res)
-        date = date.lstrip('\n ').rstrip('\n ')
-        return date
-        
-    def format_op_name(self):
-        res = self.xpath_post(self.req['author'])
-        if not res:
-            return "Pseudo supprimé"
-        else:
-            return res[0]
-    
-    def get_ext_urls(self):
-        return list(dict.fromkeys(self.content_tree.xpath(self.req['ext_links'])))
-        
-    def get_raw_content(self):
-        return self.content_tree.xpath(".//p/text()")
-        
-    def get_images_url(self):
-        return list(dict.fromkeys(self.content_tree.xpath(self.req['imgs'])))
-        
-    def get_webms_url(self):
-        # a ameliorer -> lister tous les sites à webm?
-        return [webm_url for webm_url in self.ext_urls if "http" in webm_url]
-        
-    def get_vocas_url(self):
-        return [voca_url for voca_url in self.ext_urls if "vocaroo.com" in voca_url]
-        
-    def __str__(self):
-        return self.op + " le " + self.date + ":\n URLS " + str(self.ext_urls)
-        
-    def xml_disp(self, only_content = True):
-        import xml.etree.ElementTree as ET
-        if only_content:
-            s = ET.tostring(self.content_tree, encoding="utf-8")
-        else:
-            s = ET.tostring(self.post_tree, encoding="utf-8")
-        return s.decode("utf-8").replace('    ', ' ').replace('>', '>\n')
-    
-    
-class Topic():
-    
-    """elmt topic = //div[@id='forum-main-col'] -> indice 0"""
-    """elmt titre = .//span[@id='bloc-title-forum']/text() sur topic -> indice 0"""
-    """elmt max_page = .//div[@class='bloc-liste-num-page'])[1]/span[last()-1]/a/text() sur topic -> ind 0"""
-    """elmt author = topic.xpath("(.//div[@class='inner-head-content']/div[@class='bloc-header']/span)[1]/text()")
-                     faire gaffe a elminier \n et espaces dans réponse"""
-                     
-    def __init__(self, url):
-        self.main_url = url
-        main_page = open_page(url)
-        if main_page is None or type(main_page) is tuple:
-            raise Page_not_foundError(url)
-        self.req = self.init_requests()
-        self.tree = tree_from_page(main_page)
-        self.topic_tree = self.tree.xpath(self.req['topic'])[0]
-        self.title = self.xpath_topic(self.req['title'])[0]
-        self.main_page = int(self.xpath_topic(self.req['curr_p'])[0])
-        self.max_page = self.get_max_page()
-        
-        # Retour a la page 1 pour trouver l'auteur
-        self.set_page(1)
-        self.op = self.xpath_topic(self.req['op'])[0].strip(' \n')
-
-        
-    def init_requests(self):
-        req = {}
-        req['topic'] = "//div[@id='forum-main-col']"
-        req['title'] = ".//span[@id='bloc-title-forum']/text()"
-        req['op'] = "(.//div[@class='inner-head-content']/div[@class='bloc-header']/span)[1]/text()"
-        req['max_p'] = "(.//div[@class='bloc-liste-num-page'])[1]/span[position()=last() or position()=last()-1]//text()"
-        req['curr_p'] = "(.//div[@class='bloc-liste-num-page'])[1]/span[@class='page-active']//text()"
-        req['all_msg'] = ".//div[@class='bloc-message-forum ']"
-        return req
-        
-    def xpath_topic(self, req):
-        return self.topic_tree.xpath(req)
-        
-    def get_max_page(self):
-        various_res = self.topic_tree.xpath(self.req['max_p'])
-        if len(various_res) == 0:
-            return 1
-        else:
-            try:
-                p = int(various_res[1])
-                return p
-            except (ValueError, IndexError):
-                return int(various_res[0]) 
-        
-    def get_nth_page_url(self, n):
-        if n < 1 or n > self.max_page:
-            return None
-        split_url = self.main_url.split('-')
-        split_url[3] = str(n)
-        return '-'.join(split_url)
-        
-    def set_page(self, n):
-        url_n = self.get_nth_page_url(n)
-        if url_n is None:
-            return None
-        page_n = open_page(url_n)
-        if page_n is None or type(page_n) is tuple:
-            raise Page_not_foundError(url_n)
-        self.tree = tree_from_page(page_n)
-        self.topic_tree = self.tree.xpath(self.req['topic'])[0]
-        self.curr_page = n
-        self.curr_url = url_n
-        return True
-        
-    def get_all_post(self, sel_posters=[]):
-        posts = []
-        for elmt_post in self.xpath_topic(self.req['all_msg']):
-            p = Post(elmt_post)
-            if len(sel_posters) > 0:
-                if p.op in sel_posters:
-                    posts.append(p)
-            else:
-                posts.append(p)     
-        return posts
-
-    def get_nth_post(self, n): 
-        res = self.xpath_topic("(.//div[@class='bloc-message-forum '])[" + str(n) + "]")
-        if len(res) == 0:
-            return None
-        return Post(res)
-        
-    def __str__(self):
-        return self.title + "\n de " + self.op + " (" + str(self.main_page) + " | " + str(self.max_page) + " pages)"
-        
         
 class Jvc_downloader():
     
@@ -261,6 +33,9 @@ class Jvc_downloader():
         if self.params['only_op']:
             self.sel_posters.add(self.topic.op)
         self.sel_posters.update(self.params['sel_pseudos'])
+
+        if self.params['types_ok'][3]:
+            self.html = Post_HTML_writer(self.topic)
         
         
     def init_dir(self, tree):    
@@ -293,7 +68,9 @@ class Jvc_downloader():
                 pass
             self.retry_connection()
         self.retry_connection()
-        self.display_end()        
+        self.display_end()
+        if self.params['types_ok'][3]:
+            self.html.write_html(self.dir + "/" + to_folder_name(self.topic.title) + ".html")
         
     def retry_connection(self):
         if not self.denied_req:
@@ -326,6 +103,8 @@ class Jvc_downloader():
             all_webm_urls.extend(post.get_webms_url())
             all_voca_urls.extend(post.get_vocas_url())
             page_str += str(post) + "\n" + "".join(post.get_raw_content()) + "\n-----------------------------\n"
+            if types_ok[3]:
+                self.html.add_post(post)
             
         if types_ok[0]:
             # Recherche et dl des images
@@ -338,9 +117,7 @@ class Jvc_downloader():
         if types_ok[2]:
             # Recherche et dl des vocaroo
             self.fetch_vocaroos(list(dict.fromkeys(all_voca_urls)))
-            
-        # with open(self.dir + "/" + str(self.topic.curr_page), 'w+') as elmt_file:
-            # elmt_file.write(page_str)
+        
             
     def fetch_images(self, urls):
         self.display("   <---- Images ---->")
@@ -511,6 +288,7 @@ class Jvc_downloader():
             print(str)
 
             
-            
-            
+
+        
+        
             
