@@ -67,3 +67,42 @@ class Image_selector():
         infos[0] += " ~ " + str(uni_corners) + " corners"
         return uni_corners>1
         
+        
+class Risitas_selector():
+    
+    def __init__(self, topic, others_posters = []):
+        self.author = topic.op
+        self.others = others_posters
+        
+    def select_post(self, post):
+        if post.op in self.others:
+            return True
+        if post.op == self.author:
+            return self.is_chapter(post)
+        return False
+    
+    def is_chapter(self, post):
+        for i, test_fun in enumerate([self.chapt_by_stickers,self.chapt_by_title,self.chapt_by_size]):
+            if test_fun(post):
+                return True
+        return False
+        
+    def chapt_by_title(self, post):
+        txt = post.xml_disp(only_content=True).lower()
+        found_keyword = (not "blockquote" in txt) and (("chapitre" in txt) or ("partie" in txt))
+        enough_lines = self.chapt_by_size(post, max_size=10)
+        return found_keyword and enough_lines
+        
+    def chapt_by_size(self, post, max_size=20):
+        nbr_lines = post.content_tree.xpath("count(.//p | .//br)")
+        return nbr_lines > max_size
+        
+    def chapt_by_stickers(self, post, nbr_max=20):
+        nbr_stickers = post.content_tree.xpath("count(.//img[@class='img-shack'])")
+        return nbr_stickers > nbr_max
+    
+    
+        
+        
+        
+        

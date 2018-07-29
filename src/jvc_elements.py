@@ -73,12 +73,6 @@ class Post():
     
     
 class Topic():
-    
-    """elmt topic = //div[@id='forum-main-col'] -> indice 0"""
-    """elmt titre = .//span[@id='bloc-title-forum']/text() sur topic -> indice 0"""
-    """elmt max_page = .//div[@class='bloc-liste-num-page'])[1]/span[last()-1]/a/text() sur topic -> ind 0"""
-    """elmt author = topic.xpath("(.//div[@class='inner-head-content']/div[@class='bloc-header']/span)[1]/text()")
-                     faire gaffe a elminier \n et espaces dans réponse"""
                      
     def __init__(self, url):
         self.main_url = url
@@ -211,16 +205,31 @@ class Post_HTML_writer():
         
     def init_js(self):
         main_title = self.topic.title.replace("'", "\\'")
-        
+        main_url = self.topic.main_url
         return """<script>
                 var title = document.createElement('h2');
                 title.textContent = '""" + main_title + """';
                 var main = document.querySelector('.bloc-message-forum');
+                var jvc_link = document.createElement('p');
+                jvc_link.innerHTML = 'JVC topic'.link('""" + main_url + """');
+                main.insertBefore(jvc_link, main.firstChild);
                 main.insertBefore(title, main.firstChild);
                 var bloc_headers = document.querySelectorAll('.bloc-header');
                 for(var i=0, l=bloc_headers.length; i < l; i++){
                     bloc_headers[i].removeChild(bloc_headers[i].querySelector('.bloc-mp-pseudo'));
-                }</script>"""
+                }
+                var img_elmts = document.querySelectorAll('.img-shack');
+                for(var i=0, l=img_elmts.length; i < l; i++){
+                    img_elmts[i].setAttribute("onclick", "window.open('" + img_elmts[i].alt + "', '_blank')");
+                }
+                
+                var spoils = document.querySelectorAll('.bloc-spoil-jv');
+                var new_content, to_remove;
+                for(var i=0, l=spoils.length; i<l; i++){
+                    new_content = spoils[i].querySelector('.contenu-spoil');
+                    spoils[i].parentNode.replaceChild(new_content, spoils[i]);
+                }
+                </script>"""
         
         
         

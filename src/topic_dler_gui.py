@@ -21,7 +21,8 @@ class Application(Frame):
         self.webm_ok = IntVar()
         self.voca_ok = IntVar()
         self.post_ok = IntVar()
-        self.vars['types_ok'] = (self.img_ok, self.webm_ok, self.voca_ok, self.post_ok)
+        self.risi_ok = IntVar()
+        self.vars['types_ok'] = (self.img_ok, self.webm_ok, self.voca_ok, self.post_ok, self.risi_ok)
         self.vars['path'] = StringVar()
         self.vars['path'].set("<current working directory>")
         self.vars['nf'] = IntVar()
@@ -52,6 +53,11 @@ class Application(Frame):
         self.create_mainframe()
 
     # Type de ressources
+    def adjust_res(self):
+        if self.risi_ok.get():
+            self.post_ok.set(1)
+            self.vars['only_op'].set(1)
+    
     def fill_res(self, box):
         btn_img = Checkbutton(box, text="images", padx=10, variable=self.img_ok)
         btn_img.select()
@@ -60,10 +66,13 @@ class Application(Frame):
         btn_voca = Checkbutton(box, text="vocaroo", padx=10, variable=self.voca_ok)
         btn_voca.select()
         btn_posts = Checkbutton(box, text="posts", padx=10, variable=self.post_ok)
+        btn_risi = Checkbutton(box, text="[RISITAS]", padx=10, variable=self.risi_ok, command=self.adjust_res)
+        
         btn_img.pack(side=LEFT)
         btn_webm.pack(side=LEFT)
         btn_voca.pack(side=LEFT)
         btn_posts.pack(side=LEFT)
+        btn_risi.pack(side=LEFT)
         
     # Controle stickers
     def fill_stickers(self, box):
@@ -260,6 +269,8 @@ class Application(Frame):
             self.log.see('end')
 
 
+            
+            
 class Jvc_dl_thread(threading.Thread):
     def __init__(self, params, log_widget):
         threading.Thread.__init__(self)
@@ -279,7 +290,8 @@ class Jvc_dl_thread(threading.Thread):
             FILEBROWSER_PATH = os.path.join(os.getenv('WINDIR'), 'explorer.exe')
             if os.path.isdir(path):
                 subprocess.run([FILEBROWSER_PATH, path])
-        
+
+                
 if __name__ == "__main__":
 
     if getattr(sys, 'frozen', False): # PyInstaller adds this attribute

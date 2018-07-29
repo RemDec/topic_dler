@@ -37,6 +37,8 @@ class Jvc_downloader():
         if self.params['types_ok'][3]:
             self.html = Post_HTML_writer(self.topic)
         
+        if self.params['types_ok'][4]:
+            self.risi_selector = Risitas_selector(self.topic, self.params['sel_pseudos'])
         
     def init_dir(self, tree):    
         if self.params['path'] != "<current working directory>":
@@ -104,7 +106,11 @@ class Jvc_downloader():
             all_voca_urls.extend(post.get_vocas_url())
             page_str += str(post) + "\n" + "".join(post.get_raw_content()) + "\n-----------------------------\n"
             if types_ok[3]:
-                self.html.add_post(post)
+                if types_ok[4]:
+                    if self.risi_selector.select_post(post):
+                        self.html.add_post(post)
+                else:
+                    self.html.add_post(post)
             
         if types_ok[0]:
             # Recherche et dl des images

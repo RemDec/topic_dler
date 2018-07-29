@@ -20,6 +20,6 @@ with open("raw_page.html", 'w+', encoding="utf-8-sig") as fp:
     for msg in page:
         print("\n--------------------------------------")
         print(msg)
-        print(msg.get_raw_content())
-        print(msg.xml_disp(only_content=False))
-        fp.write(msg.xml_disp(only_content=False))
+        # print("Raw :\n" + msg.get_raw_content())
+        print("XML :\n" + msg.xml_disp(only_content=True))
+        fp.write(msg.xml_disp(only_content=True))
