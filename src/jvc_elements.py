@@ -212,6 +212,7 @@ class Post_HTML_writer():
                 var main = document.querySelector('.bloc-message-forum');
                 var jvc_link = document.createElement('p');
                 jvc_link.innerHTML = 'JVC topic'.link('""" + main_url + """');
+                jvc_link.firstChild.target = '_blank';
                 main.insertBefore(jvc_link, main.firstChild);
                 main.insertBefore(title, main.firstChild);
                 var bloc_headers = document.querySelectorAll('.bloc-header');

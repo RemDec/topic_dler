@@ -14,31 +14,38 @@ class Jvc_downloader():
     
     def __init__(self, params, logwidget=None):
         self.topic = Topic(params['url'])
-        self.init_params(params)
-        self.img_sel = Image_selector(params['stick_ctrl'])
-        self.log = logwidget
-        self.ua_list = get_n_useragents(6)
-        self.ind_ua = 0
-        
-    def init_params(self, params):
-        self.params = params
-        self.verb = params['verb']
-        self.dir = self.init_dir(self.topic.tree)
+
         self.sel_posters = SortedList()
         self.all_dl_resources = SortedList()
         self.all_used_name = SortedList()
         self.denied_req = []
         self.num_dl = 0
+        self.ua_list = get_n_useragents(6)
+        self.ind_ua = 0
         
-        if self.params['only_op']:
-            self.sel_posters.add(self.topic.op)
-        self.sel_posters.update(self.params['sel_pseudos'])
+        self.init_params(params)
 
-        if self.params['types_ok'][3]:
+        self.log = logwidget
+        
+        
+    def init_params(self, params):
+        self.params = params
+        self.verb = params['verb']
+        self.dir = self.init_dir(self.topic.tree)
+        (self.img_ok, self.webm_ok, self.voca_ok, self.post_ok, self.risi_ok) = params['types_ok']
+        
+        if self.img_ok:
+            self.img_sel = Image_selector(params['stick_ctrl'])
+        
+        if params['only_op']:
+            self.sel_posters.add(self.topic.op)
+        self.sel_posters.update(params['sel_pseudos'])
+
+        if self.post_ok:
             self.html = Post_HTML_writer(self.topic)
         
-        if self.params['types_ok'][4]:
-            self.risi_selector = Risitas_selector(self.topic, self.params['sel_pseudos'])
+        if self.risi_ok:
+            self.risi_selector = Risitas_selector(self.topic, params['sel_pseudos'])
         
     def init_dir(self, tree):    
         if self.params['path'] != "<current working directory>":
@@ -71,7 +78,7 @@ class Jvc_downloader():
             self.retry_connection()
         self.retry_connection()
         self.display_end()
-        if self.params['types_ok'][3]:
+        if self.post_ok:
             self.html.write_html(self.dir + "/" + to_folder_name(self.topic.title) + ".html")
         
     def retry_connection(self):
@@ -96,31 +103,28 @@ class Jvc_downloader():
     
     #Recherche+dl de tous les elmts
     def fetch_elmts_from_url(self, page_tree):
-        types_ok = self.params['types_ok']
         all_urls = ([], [], [])
         (all_img_urls, all_webm_urls, all_voca_urls) = all_urls
-        page_str = ""
         for post in self.topic.get_all_post(self.sel_posters):
             all_img_urls.extend(post.get_images_url())
             all_webm_urls.extend(post.get_webms_url())
-            all_voca_urls.extend(post.get_vocas_url())
-            page_str += str(post) + "\n" + "".join(post.get_raw_content()) + "\n-----------------------------\n"
-            if types_ok[3]:
-                if types_ok[4]:
+            all_voca_urls.extend(post.get_vocas_url())           
+            if self.post_ok:
+                if self.risi_ok:
                     if self.risi_selector.select_post(post):
                         self.html.add_post(post)
                 else:
                     self.html.add_post(post)
             
-        if types_ok[0]:
+        if self.img_ok:
             # Recherche et dl des images
             self.fetch_images(list(dict.fromkeys(all_img_urls)))
                     
-        if types_ok[1]:
+        if self.webm_ok:
             # Recherche et dl des webm
             self.fetch_webms(list(dict.fromkeys(all_webm_urls)))
             
-        if types_ok[2]:
+        if self.voca_ok:
             # Recherche et dl des vocaroo
             self.fetch_vocaroos(list(dict.fromkeys(all_voca_urls)))
         
