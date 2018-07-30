@@ -308,8 +308,9 @@ if __name__ == "__main__":
 
     root = Tk()
     root.title("topic_DLer by Kyprinite")
-    folder_path = path.join(currentPath, "data")
-    root.iconbitmap(path.join(folder_path, "mini.ico"))
+    if os.name == 'nt':
+        folder_path = path.join(currentPath, "data")
+        root.iconbitmap(path.join(folder_path, "mini.ico"))
     app = Application(master=root)
     app.mainloop()
 
