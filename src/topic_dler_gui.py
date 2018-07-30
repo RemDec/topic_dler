@@ -55,6 +55,9 @@ class Application(Frame):
     # Type de ressources
     def adjust_res(self):
         if self.risi_ok.get():
+            self.img_ok.set(0)
+            self.webm_ok.set(0)
+            self.voca_ok.set(0)
             self.post_ok.set(1)
             self.vars['only_op'].set(1)
     
@@ -259,6 +262,8 @@ class Application(Frame):
         if self.vars['url'].get() in ["", "<empty URL>"]:
             self.vars['url'].set("<empty URL>")
             return None
+        if self.risi_ok.get():
+            self.post_ok.set(1)
         frozen = self.freeze_vars()
         try:
             dl_thread = Jvc_dl_thread(frozen, self.log)

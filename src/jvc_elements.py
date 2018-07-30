@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from web_utils import *
+import xml.etree.ElementTree as ET
 
 class Post():
     
@@ -63,14 +64,15 @@ class Post():
     def __str__(self):
         return self.op + " le " + self.date + ":\n URLS " + str(self.ext_urls)
         
-    def xml_disp(self, only_content = True):
-        import xml.etree.ElementTree as ET
+    def xml_disp(self, only_content = True, nice_disp=True):
         if only_content:
             s = ET.tostring(self.content_tree, encoding="utf-8")
         else:
             s = ET.tostring(self.post_tree, encoding="utf-8")
-        return s.decode("utf-8").replace('    ', ' ').replace('>', '>\n')
-    
+        if nice_disp:
+            return s.decode("utf-8").replace('    ', ' ').replace('>', '>\n')
+        else:
+            return s.decode("utf-8")
     
 class Topic():
                      
@@ -169,7 +171,7 @@ class Post_HTML_writer():
         self.css = self.init_css()
         
     def add_post(self, post):
-        self.html_posts += post.xml_disp(only_content=False)
+        self.html_posts += post.xml_disp(only_content=False, nice_disp=False)
         
     def write_html(self, title=None):
         title = title if title is not None else self.filename
@@ -200,6 +202,9 @@ class Post_HTML_writer():
                 font-style : italic;
                 color : #4d4d4d;
                 }
+                i {
+                    font-style : normal;
+                }
                 </style>"""
         
         
@@ -207,6 +212,7 @@ class Post_HTML_writer():
         main_title = self.topic.title.replace("'", "\\'")
         main_url = self.topic.main_url
         return """<script>
+                //Entete
                 var title = document.createElement('h2');
                 title.textContent = '""" + main_title + """';
                 var main = document.querySelector('.bloc-message-forum');
@@ -215,15 +221,17 @@ class Post_HTML_writer():
                 jvc_link.firstChild.target = '_blank';
                 main.insertBefore(jvc_link, main.firstChild);
                 main.insertBefore(title, main.firstChild);
+                //Suppression des blocs MP
                 var bloc_headers = document.querySelectorAll('.bloc-header');
                 for(var i=0, l=bloc_headers.length; i < l; i++){
                     bloc_headers[i].removeChild(bloc_headers[i].querySelector('.bloc-mp-pseudo'));
                 }
+                //Images cliquables
                 var img_elmts = document.querySelectorAll('.img-shack');
                 for(var i=0, l=img_elmts.length; i < l; i++){
                     img_elmts[i].setAttribute("onclick", "window.open('" + img_elmts[i].alt + "', '_blank')");
                 }
-                
+                //Reformation des blocs SPOIL
                 var spoils = document.querySelectorAll('.bloc-spoil-jv');
                 var new_content, to_remove;
                 for(var i=0, l=spoils.length; i<l; i++){

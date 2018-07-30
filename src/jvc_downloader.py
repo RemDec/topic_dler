@@ -68,18 +68,21 @@ class Jvc_downloader():
         if len(self.sel_posters) > 0:
             self.display("Recherche pour les pseudos suivants :\n"+str_sorted_list(self.sel_posters))
         for n_page in range(self.topic.max_page):
-            self.display("<==== Page " + str(n_page+1) + " ====>")
-            try:
-                get_ok = self.topic.set_page(n_page+1)
-                if get_ok:
-                    self.fetch_elmts_from_url(self.topic.topic_tree)
-            except timeout:
-                pass
+            self.display("<==== Page " + str(n_page+1) + "|" + str(self.topic.max_page) + " ====>")
+            nbr_try = 0
+            while nbr_try < 3:
+                try:
+                    get_ok = self.topic.set_page(n_page+1)
+                    if get_ok:
+                        self.fetch_elmts_from_url(self.topic.topic_tree)
+                        break
+                    nbr_try += 1
+                except (timeout, Page_not_foundError) as e:
+                    self.display("Page " + str(n_page+1) + " non trouvée :" + str(e))
             self.retry_connection()
         self.retry_connection()
+        self.write_HTML_page()
         self.display_end()
-        if self.post_ok:
-            self.html.write_html(self.dir + "/" + to_folder_name(self.topic.title) + ".html")
         
     def retry_connection(self):
         if not self.denied_req:
@@ -131,7 +134,6 @@ class Jvc_downloader():
             
     def fetch_images(self, urls):
         self.display("   <---- Images ---->")
-        #self.display("URLS : " + str(urls))
         slct_img_fct = self.is_img_relevant if self.params['stick'] in [1, 2] else None
         for img_url in urls:
             try:
@@ -141,7 +143,6 @@ class Jvc_downloader():
         
     def fetch_webms(self, urls):
         self.display("   <---- Videos ---->")
-        #self.display("URLS : " + str(urls))
         for webm_url in urls:
             try:
                 self.fetch_elmt_oftype(webm_url, "video", self.webm_from_site)
@@ -150,14 +151,20 @@ class Jvc_downloader():
                 
     def fetch_vocaroos(self, urls):
         self.display("   <---- Vocaroos ---->")
-        #self.display("URLS : " + str(urls))
         for voca_url in urls:
             try:
                 self.fetch_elmt_oftype(voca_url, "audio", self.vocaroo_from_site)
             except timeout:
                 pass
     
-    
+    def write_HTML_page(self):
+        if self.post_ok:
+            self.display("   <---- Page HTML du topic ---->")
+            page_name = to_folder_name(self.topic.title) + ".html"
+            self.html.write_html(self.dir + "/" + page_name)
+            self.num_dl += 1
+            self.display("       " + page_name)
+            
     #DL d'une ressource 
     def fetch_elmt_oftype(self, url, oftype, alt_fct, slct_fct=None, alt_name=None, redirect=False):
         if url in self.all_dl_resources:
@@ -205,6 +212,7 @@ class Jvc_downloader():
         while "("+str(ind)+")"+elmt_name in self.all_used_name:
             ind += 1
         return "("+str(ind)+")"+elmt_name
+
                 
     #Traitement image
     def img_from_noel(self, response, slct_fct=None, alt_name=None):
