@@ -266,7 +266,8 @@ class Application(Frame):
             self.post_ok.set(1)
         frozen = self.freeze_vars()
         try:
-            dl_thread = Jvc_dl_thread(frozen, self.log)
+            logframe = None if threading.active_count()>1 else self.log
+            dl_thread = Jvc_dl_thread(frozen, logframe, self)
             dl_thread.start()
         except Page_not_foundError as e:
             print(e)
@@ -277,10 +278,13 @@ class Application(Frame):
             
             
 class Jvc_dl_thread(threading.Thread):
-    def __init__(self, params, log_widget):
+    def __init__(self, params, log_widget, mainframe):
         threading.Thread.__init__(self)
+        if log_widget is None and params['verb']:
+            log_widget = self.create_logframe(mainframe)
         self.log = log_widget
-        self.log.pack()
+        if params['verb']:
+            self.log.pack()
         self.jvc_dl = Jvc_downloader(params, self.log)
         
     def run(self):
@@ -289,6 +293,12 @@ class Jvc_dl_thread(threading.Thread):
         self.jvc_dl.start_dl()
         self.open_explorer()
         
+    def create_logframe(self, mainframe):
+        frame = Toplevel(mainframe, width=400, height=500)        
+        frame.title = "thread log"
+        log = Text(frame, padx=10, pady=5)    
+        return log
+
     def open_explorer(self):
         if os.name == 'nt' and self.jvc_dl.params['open_explorer']:
             path = os.path.normpath(self.jvc_dl.dir)

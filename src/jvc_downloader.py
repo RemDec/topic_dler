@@ -299,9 +299,12 @@ class Jvc_downloader():
         
     def display(self, str):
         if self.verb:
-            if self.log is not None:
-                self.log.insert('end', str+"\n")
-                self.log.see('end')
+            try:
+                if self.log is not None:
+                    self.log.insert('end', str+"\n")
+                    self.log.see('end')
+            except:
+                print("Erreur ecriture log de :")
             print(str)
 
             
