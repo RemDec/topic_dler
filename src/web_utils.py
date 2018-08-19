@@ -40,12 +40,19 @@ def http_request(url, u_a = None, keep = False):
     except ssl.SSLWantReadError as e:
         print("Unknown error : " + str(e))
         
-def open_page(url, sv_html=False, filename='page.html'):
+def open_page(url, is_local_url=False, sv_html=False, filename='page.html'):
     """
-    A partir d'un url fait la requete et retourne les données du champs data
+    A partir d'un url (ou chemin local) fait la requete et retourne les données du champs data
     de la réponse à cette requête, ou None si elle n'a pas abouti
     """
-    page = http_request(url)
+    if is_local_url:
+        import os
+        if os.path.isfile(url):
+            page = request.urlopen("file:"+url)
+        else:
+            return None
+    else:
+        page = http_request(url)
     if page is None or type(page) is tuple:
         return page
     str_page = page.read().decode('UTF-8')

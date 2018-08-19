@@ -118,7 +118,6 @@ class Jvc_downloader():
                         self.html.add_post(post)
                 else:
                     self.html.add_post(post)
-            
         if self.img_ok:
             # Recherche et dl des images
             self.fetch_images(list(dict.fromkeys(all_img_urls)))

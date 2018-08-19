@@ -6,7 +6,7 @@ import xml.etree.ElementTree as ET
 
 class Post():
     
-    def __init__(self, post_tree):
+    def __init__(self, post_tree, is_jvp=False):
         try:
             self.post_tree = post_tree
             self.req = self.init_req()
@@ -14,6 +14,7 @@ class Post():
             self.date = self.format_date()
             self.content_tree = self.xpath_post(self.req['content_tree'])[0]
             self.ext_urls = self.get_ext_urls()
+            self.is_jvp = is_jvp
         except IndexError as e:
             print(e)
             print(self.xml_disp(only_content=False))
@@ -22,8 +23,10 @@ class Post():
         req = {}
         req['author'] = "(.//@alt)[1]"
         req['date'] = ".//div[@class='bloc-date-msg']//text()"
-        req['content_tree'] = ".//div[@class='bloc-contenu']"
+        req['content_tree'] = ".//div[./div[starts-with(@class, 'txt-msg')]]"
+        req['content_tree2'] = ".//div[@class='bloc-contenu']"
         req['imgs'] = ".//img[@class='img-shack']/@alt"
+        req['imgs_href'] = ".//a[./img]/@href"
         req['ext_links'] = ".//span/@title | .//span[not(./img)][not(@title)][@class]/text()"
         return req
         
@@ -52,7 +55,11 @@ class Post():
         return self.content_tree.xpath(".//p//text()")
         
     def get_images_url(self):
-        return list(dict.fromkeys(self.content_tree.xpath(self.req['imgs'])))
+        if self.is_jvp:
+            found_url = self.content_tree.xpath(self.req['imgs_href'])
+        else:
+            found_url = self.content_tree.xpath(self.req['imgs'])
+        return list(dict.fromkeys(found_url))
         
     def get_webms_url(self):
         # a ameliorer -> lister tous les sites à webm?
@@ -78,19 +85,25 @@ class Topic():
                      
     def __init__(self, url):
         self.main_url = url
-        main_page = open_page(url)
+        self.is_local_url = not "http" in url
+        main_page = open_page(url, self.is_local_url)
         if main_page is None or type(main_page) is tuple:
             raise Page_not_foundError(url)
         self.req = self.init_requests()
         self.tree = tree_from_page(main_page)
         self.topic_tree = self.tree.xpath(self.req['topic'])[0]
         self.title = self.xpath_topic(self.req['title'])[0]
-        self.main_page = int(self.xpath_topic(self.req['curr_p'])[0])
-        self.max_page = self.get_max_page()
-        
-        # Retour a la page 1 pour trouver l'auteur
-        self.set_page(1)
-        self.op = self.xpath_topic(self.req['op'])[0].strip(' \n')
+        if not self.is_local_url:
+            self.main_page = int(self.xpath_topic(self.req['curr_p'])[0])
+            self.max_page = self.get_max_page()
+            
+            # Retour a la page 1 pour trouver l'auteur
+            self.set_page(1)
+            self.op = self.xpath_topic(self.req['op'])[0].strip(' \n')
+        else:
+            self.main_page = 1
+            self.max_page = 1
+            self.op = "AUTEUR DE JVP"
 
         
     def init_requests(self):
@@ -100,7 +113,8 @@ class Topic():
         req['op'] = "(.//div[@class='inner-head-content']/div[@class='bloc-header']/span)[1]/text()"
         req['max_p'] = "(.//div[@class='bloc-liste-num-page'])[1]/span[position()=last() or position()=last()-1]//text()"
         req['curr_p'] = "(.//div[@class='bloc-liste-num-page'])[1]/span[@class='page-active']//text()"
-        req['all_msg'] = ".//div[@class='bloc-message-forum ']"
+        req['all_msg2'] = ".//div[@class='bloc-message-forum ']"
+        req['all_msg'] = ".//div[starts-with(@class, 'bloc-message-forum')]"
         return req
         
     def xpath_topic(self, req):
@@ -118,6 +132,8 @@ class Topic():
                 return int(various_res[0]) 
         
     def get_nth_page_url(self, n):
+        if self.is_local_url:
+            return self.main_url
         if n < 1 or n > self.max_page:
             return None
         split_url = self.main_url.split('-')
@@ -125,6 +141,9 @@ class Topic():
         return '-'.join(split_url)
         
     def set_page(self, n):
+        if self.is_local_url:
+            return True
+            
         url_n = self.get_nth_page_url(n)
         if url_n is None:
             return None
@@ -140,7 +159,7 @@ class Topic():
     def get_all_post(self, sel_posters=[]):
         posts = []
         for elmt_post in self.xpath_topic(self.req['all_msg']):
-            p = Post(elmt_post)
+            p = Post(elmt_post, is_jvp=self.is_local_url)
             if len(sel_posters) > 0:
                 if p.op in sel_posters:
                     posts.append(p)
@@ -149,7 +168,7 @@ class Topic():
         return posts
 
     def get_nth_post(self, n): 
-        res = self.xpath_topic("(.//div[@class='bloc-message-forum '])[" + str(n) + "]")
+        res = self.xpath_topic("(.//div[starts-with(@class, 'bloc-message-forum')])[" + str(n) + "]")
         if len(res) == 0:
             return None
         return Post(res)
