@@ -187,6 +187,14 @@ class Application(Frame):
         comp_frame2.pack(side=BOTTOM)
     
     # Input de l'URL
+    def cancel_threads(self):
+        for thread in threading.enumerate():
+            if thread != threading.current_thread():
+                thread.stop()
+        if self.widgets.get('stop') is not None:
+            self.widgets['stop'].destroy()
+            self.widgets['stop'] = None
+
     def clean_entry(self, event):
         if self.vars['url'].get() == "<empty URL>":
             self.widgets['url_entry'].delete(0, END)
@@ -269,14 +277,24 @@ class Application(Frame):
             logframe = None if threading.active_count()>1 else self.log
             dl_thread = Jvc_dl_thread(frozen, logframe, self)
             dl_thread.start()
+            self.append_stop_btn()
         except Page_not_foundError as e:
             print(e)
             self.log.insert('end', str(e) +"\n")
             self.log.see('end')
 
+    def append_stop_btn(self):
+        if self.widgets.get('stop') is None:
+            parent = self.logf if self.vars['verb'] else self.p
+            btn_stop = Button(parent, text="STOP", command=self.cancel_threads)
+            if parent == self.p:
+                self.p.add(btn_stop)
+                self.p.pack()
+            btn_stop.pack(side=BOTTOM)
+            self.widgets['stop'] = btn_stop
 
-            
-            
+
+# Thread de download jvc
 class Jvc_dl_thread(threading.Thread):
     def __init__(self, params, log_widget, mainframe):
         threading.Thread.__init__(self)
@@ -286,6 +304,9 @@ class Jvc_dl_thread(threading.Thread):
         if params['verb']:
             self.log.pack()
         self.jvc_dl = Jvc_downloader(params, self.log)
+
+    def stop(self):
+        self.jvc_dl.stop()
         
     def run(self):
         if self.jvc_dl.verb:

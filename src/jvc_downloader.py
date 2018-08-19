@@ -22,6 +22,7 @@ class Jvc_downloader():
         self.num_dl = 0
         self.ua_list = get_n_useragents(6)
         self.ind_ua = 0
+        self.stop_dl = False
         
         self.init_params(params)
 
@@ -68,6 +69,8 @@ class Jvc_downloader():
         if len(self.sel_posters) > 0:
             self.display("Recherche pour les pseudos suivants :\n"+str_sorted_list(self.sel_posters))
         for n_page in range(self.topic.max_page):
+            if self.stop_dl:
+                break
             self.display("<==== Page " + str(n_page+1) + "|" + str(self.topic.max_page) + " ====>")
             nbr_try = 0
             while nbr_try < 3:
@@ -109,6 +112,8 @@ class Jvc_downloader():
         all_urls = ([], [], [])
         (all_img_urls, all_webm_urls, all_voca_urls) = all_urls
         for post in self.topic.get_all_post(self.sel_posters):
+            if self.stop_dl:
+                return 0
             all_img_urls.extend(post.get_images_url())
             all_webm_urls.extend(post.get_webms_url())
             all_voca_urls.extend(post.get_vocas_url())           
@@ -135,6 +140,8 @@ class Jvc_downloader():
         self.display("   <---- Images ---->")
         slct_img_fct = self.is_img_relevant if self.params['stick'] in [1, 2] else None
         for img_url in urls:
+            if self.stop_dl:
+                return 0            
             try:
                 self.fetch_elmt_oftype(img_url, "image", self.img_from_noel, slct_img_fct)
             except timeout:
@@ -143,6 +150,8 @@ class Jvc_downloader():
     def fetch_webms(self, urls):
         self.display("   <---- Videos ---->")
         for webm_url in urls:
+            if self.stop_dl:
+                return 0
             try:
                 self.fetch_elmt_oftype(webm_url, "video", self.webm_from_site)
             except timeout:
@@ -151,6 +160,8 @@ class Jvc_downloader():
     def fetch_vocaroos(self, urls):
         self.display("   <---- Vocaroos ---->")
         for voca_url in urls:
+            if self.stop_dl:
+                return 0
             try:
                 self.fetch_elmt_oftype(voca_url, "audio", self.vocaroo_from_site)
             except timeout:
@@ -216,7 +227,8 @@ class Jvc_downloader():
     #Traitement image
     def img_from_noel(self, response, slct_fct=None, alt_name=None):
         tree = tree_from_page(response.read())
-        img_url = tree.xpath('/html/head/meta[@property="og:image"]/@content')[0]
+        #img_url = tree.xpath('/html/head/meta[@property="og:image"]/@content')[0]
+        img_url = tree.xpath('//a[@id="img_actu"]/@href')[0]        
         self.fetch_elmt_oftype(img_url, "image", self.img_from_noel, slct_fct, alt_name, redirect=True) 
 
     def is_img_relevant(self, response, content, redirect=False):
@@ -307,7 +319,10 @@ class Jvc_downloader():
                 print("Erreur ecriture log de :")
             print(str)
 
-            
+    def stop(self):
+        self.display("Exécution avortée !!!")
+        self.stop_dl = True;
+         
 
         
         
