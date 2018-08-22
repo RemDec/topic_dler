@@ -290,7 +290,7 @@ class Application(Frame):
             if parent == self.p:
                 self.p.add(btn_stop)
                 self.p.pack()
-            btn_stop.pack(side=BOTTOM)
+            btn_stop.pack(side=BOTTOM, pady=10)
             self.widgets['stop'] = btn_stop
 
 

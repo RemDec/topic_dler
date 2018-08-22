@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="popup.css"/>
+  </head>
+
+  <body>
+    <h2><u>Paramètres rapides par défaut</u></h2>
+    <p> Types de ressources qui doivent être minée depuis les posts sélectionnés du topic
+        </br>
+        <form name="basic_options" id="basic">
+            <input class="basic" type="checkbox" id="img_ok" />
+            <label for="img_ok">images</label>
+            <input class="basic" type="checkbox" id="webm_ok" />
+            <label for="webm_ok">webm</label>
+            <input class="basic" type="checkbox" id="voca_ok" />
+            <label for="voca_ok">vocaroos</label>
+            <input class="basic" type="checkbox" id="posts_ok"/>
+            <label for="posts_ok">posts</label>
+            <input class="basic" type="checkbox" id="risi_ok"/>
+            <label for="risi_ok">[RISITAS]</label>
+            </br></br>
+                Le "Menu des Kheys" est un système de centralisation des topics pour lequel beaucoup
+                de requêtes ont été lancées par les utilisateurs de l'application, permettant ainsi
+                de faire un top des meilleurs sujets de la soirée !
+            </br>
+            <input class="basic" type="checkbox" id="menu_kheys"/>
+            <label for="menu_kheys">contribuer au Menu des Kheys</label>
+            <div style="margin:15px 0 0 350px">
+            <input type="submit" value="Sauvegarder">
+            </div>
+        </form>
+    </p>
+    
+    <h2><u>Paramètres de minage</u></h2>
+    <p> Ces options seront prises en compte pour chaque téléchargement rapide,
+    elles permettent d'affiner votre demande.</p>
+    <form name="spec_options" id="spec">
+        <h3>Images & gifs</h3>
+            <label>
+                <input type="radio" name="type_img" value="all_img" checked>
+                Tout type
+            </label>
+            <label>
+                <input type="radio" name="type_img" value="only_img">
+                Images uniquement
+            </label>
+            <label>
+                <input type="radio" name="type_img" value="stick_img">
+                Stickers uniquement
+            </label>
+        <h3>Forumeurs ciblés</h3>
+            <label>
+                <input type="checkbox" name="op_target" value="only_op">
+                Cibler les posts de l'auteur
+            </label>
+            <label>
+                <button type="button">Autres</button> 
+            </label>
+        <h3>Fichiers</h3>
+            <label>
+                <input type="number" min="1" max="1001" value="500">
+                Mo maximum (contenu archive finale)
+            </label>
+            </br>
+            <label>
+                <input type="checkbox" value="autonames">
+                Noms automatiques
+            </label>
+    </form>
+
+    
+    <script src="settings.js"></script>
+  </body>
+
+</html>

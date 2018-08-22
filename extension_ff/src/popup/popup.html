@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<a href="https://fontmeme.com/fr/polices-de-calligraphie/"><img src="" alt="polices-de-calligraphie" border="0"></a>
+
 <html>
   <head>
     <meta charset="utf-8">
@@ -9,22 +9,46 @@
   <body>
     <line>
         <text style="margin:10px 0px 10px 10px;font-size:20px">topic_dler</text>
-        <img style="margin-left:260px;margin-top:0px" src="../../data/settings.png" alt="settings" width="15px">
+        <img id="settings" style="margin-left:260px;margin-top:0px;cursor:pointer" src="../../data/settings.png" alt="settings" width="15px">
     </line>
     <hr style="padding:1px">
     <div id="site_section" style="margin-top:20px">
         <line>
-            <text style="margin:0px 90px 0px 30px"> Accès au site : </text>
-            <button id="site_button" type="button"> topic_dler.com </button>
+            <l-text style="margin-top:100px"> Accès au site : </l-text>
+            <input style="margin-left:100px"id="site_button" type="button" value="topic_dler.com">  </input>
         </line>  
     </div>
     <hr>
-    <div id="current_section" style="width:300px;margin:auto;text-align:center">
-        <line style="align:center">
-            <text> Topic actuel </text>
-            <button id="search_topic_button" type="button"> rafraichir </button>
-        </line>
-        <line> *Nom du topic* </line>
+        <div>
+            <line>
+                <l-text style="margin-right:60px"> Options rapides </l-text>
+                <input class="basic" type="checkbox" id="menu_kheys" checked/>
+                <label for="menu_kheys" style="font-size:0.8em">ajouter au menu</label>
+            </line>
+        </div>
+        <div style="text-align:center">
+            <line style="font-size:0.8em">
+                <input class="basic" type="checkbox" id="img_ok" />
+                <label for="img_ok">images</label>
+                <input class="basic" type="checkbox" id="webm_ok" />
+                <label for="webm_ok">webm</label>
+                <input class="basic" type="checkbox" id="voca_ok" />
+                <label for="voca_ok">vocaroo</label>
+                <input class="basic" type="checkbox" id="posts_ok" />
+                <label for="posts_ok">posts</label>
+                <input class="basic" type="checkbox" id="risi_ok" />
+                <label for="risi_ok">[RISITAS]</label>
+            </line>
+        </div>
+    
+    <hr>
+    <line>
+        <l-text> Topic actuel</l-text>
+        <img id="refresh" style="cursor:pointer;vertical-align:-4px" src="../../data/refresh.png" alt="refresh" width="20px">
+    </line>
+    <div id="current_section" style="width:350px;margin:auto;text-align:center">
+        <br />
+        <line><text id="topic_name" style="white-space:normal"> <i>aucun topic trouvé</i> </text></line>
         <br /><br />
         <line>
             <button id="dl_fast_button" type="button"> dl rapide </button>
@@ -32,18 +56,40 @@
         </line>
     </div>
     <hr>
-    <div id="url_section" style="margin-left:30px">
-        <line>
+    <div id="url_section">
+        <l-text>
             <label for="url_input">URL d'un topic :</label>
-            <input type="text" id="url_input" />
-        </line>
-        <line>
-            <button id="dl_fast_button_url" type="button"> dl rapide </button>
-            <button id="dl_perso_button_url" type="button"> dl personnalisé </button>
-        </line>
+            <input type="text" id="url_input" name="url" placeholder=" c/c url d'une page" size="35" pattern="www.jeuxvideo.com/forums/."/>
+        </l-text>
+        <div style="text-align:center;margin-top:5px">
+            <line>
+                <button id="dl_fast_button_url" type="button"> dl rapide </button>
+                <button id="dl_perso_button_url" type="button"> dl personnalisé </button>
+            </line>
+        </div>
     </div>
     <hr>
-    <img scr="../../data/menu_kheys.png" alt="Au menu des kheys" width="400px">  
+        <div>
+            <line>
+                <l-text>Téléchargement</l-text>
+                <img id="cancel_dl" src="../../data/cancel.png" alt="annuler" style="width:15px;cursor:pointer">
+                <button type="button" id="old_dl">historique</button>
+            </line>
+        </div>
+        <div style="text-align:center">
+            <input type="text" placeholder="*état de la requete*" />
+        </div>
+    <hr>
+    <div style="text-align:center">
+        <img src="../../data/menu_kheys.png" alt="Au menu des kheys!" width="350px">      
+    </div>
+    <ul style="margin-left:40px">
+        <li>topic1</li>
+        <li>topic2</li>
+        <li>topic3</li>
+        <li>topic4</li>
+    </ul>
+
     <script src="popup.js"></script>
   </body>
 

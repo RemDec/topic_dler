@@ -11,7 +11,8 @@
     },
 
     "permissions": [
-    "activeTab"
+        "tabs",
+        "storage"
     ],
 
     "browser_action": {
@@ -27,7 +28,10 @@
     
     "background": {
         "scripts": ["src/background/script_bg.js"]
-    }
+    },
 
+    "options_ui": {
+        "page" : "src/option/settings.html"
+    }
     
 }

@@ -2,6 +2,9 @@ Bienvenue dans le guide d'utilisation de topic_dler !
 
 Ce script est développé et maintenu pour l'élite de la nation. Tout utilisateur en dessous de la moyenne basse du forum est prié de fermer ce document, de retourner méditer dans sa médiocrité.
 
+Développé par Kyprinite.
+Le code est open source : https://github.com/RemDec/topic_dler
+Version actuelle : alpha 6 (topic_dler.0.6)
 
 1.PRINCIPE
 
@@ -48,6 +51,17 @@ Copiez/collez l'url d'une page du topic sur lequel vous voulez lancer le script 
         Une fois le téléchargement de la page HTML fini, dans la barre à url c/c le chemin de ce fichier sur votre pc et lancez le script normalement (il n'ira pas sur toutes les pages du topic)
 
     3.3 Les images dl possèdent les données EXIF originales !
+
+4.A QUOI CA SERT?
+Les utilisations sont assez variées, les kheys sont inventifs! Mais en voici quelques-unes :
+    -Se constituer une galerie de porn alimentée par les kheys suicidaires. Rendez hommage à ces héros de la plus belle des manières, et ne pleurez plus quand l'ombre du 410 s'abat enfin sans que vous n'ayez eu le temps de le faire manuellement!
+    -Des galeries de n'importe quel type en fait : fond d'écrans, photos historiques/lieux abandonnés, portraits, webm droles, etc.
+    -Se faire une banque de stickers locale colossale
+    -Retirer l'intéressant des topics à haut potentiel qui font beaucoup de pages sans qu'un khey se sacrifie pour le résumé (screens, sélectionner uniquement les messages de l'op pour rattraper l'histoire,..)
+    -Pouvoir lire un risitas sans aucune interruption/changement de page/recherche de chapitre au milieu de 1000 pages
+    -Préserver une trace d'un topic avant son 410 tout simplement (les liens noelshack seront toujours cliquables depuis la page html locale)
+    
+    
 
 Bonne collecte les crays !
 
