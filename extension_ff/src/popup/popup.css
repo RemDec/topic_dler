@@ -46,13 +46,13 @@ line childElements {
 }
 
 button[type=button] {
+    font-family: 'quicksand', 'caviar_dreams', Arial, serif;
     cursor : pointer;
-    width : 105px;
+    width : 110px;
     height : 23px;
     background-image : url("../../data/bouton2.png");
     background-color : transparent;
     background-repeat : no-repeat;
     background-size : 100% 100%;
     border : 0px;
-    
 }

@@ -1,0 +1,38 @@
+body {
+    font-family: 'quicksand', 'caviar_dreams', Arial, serif;
+    font-size : 1em;
+    background-color : #d5e1df;
+}
+
+h2 {
+    font-family: serif;
+}
+
+.topic {
+    
+}
+
+.topic * {
+    padding : 5px 10px 5px 10px;
+    background-color : #d6f2ff;
+    border : 1px solid black;
+}
+
+.topic .title {
+    width : 60%;
+    display : inline-block;
+    
+}
+
+.topic a {
+    width : 15%;
+    height : 100%;
+    display : inline-block;
+}
+
+.topic button {
+    font-family: 'quicksand', 'caviar_dreams', Arial, serif;
+    font-size : 1em;
+    display : inline-block;
+    height : 100%;
+}

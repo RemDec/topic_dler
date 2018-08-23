@@ -3,7 +3,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <link rel="stylesheet" href="popup.css"/>
+    <link rel="stylesheet" href="settings.css"/>
   </head>
 
   <body>
@@ -22,7 +22,7 @@
             <input class="basic" type="checkbox" id="risi_ok"/>
             <label for="risi_ok">[RISITAS]</label>
             </br></br>
-                Le "Menu des Kheys" est un système de centralisation des topics pour lequel beaucoup
+                Le "<i>Menu des Kheys</i>" est un système de centralisation des topics pour lequel beaucoup
                 de requêtes ont été lancées par les utilisateurs de l'application, permettant ainsi
                 de faire un top des meilleurs sujets de la soirée !
             </br>
@@ -53,7 +53,7 @@
             </label>
         <h3>Forumeurs ciblés</h3>
             <label>
-                <input type="checkbox" name="op_target" value="only_op">
+                <input type="checkbox" name="op_target" value="only_op" id="op_target">
                 Cibler les posts de l'auteur
             </label>
             <label>
@@ -61,17 +61,25 @@
             </label>
         <h3>Fichiers</h3>
             <label>
-                <input type="number" min="1" max="1001" value="500">
-                Mo maximum (contenu archive finale)
+                <input type="number" name="max_size" min="1" max="1000" value="500">
+                <strong>Mo</strong> maximum (contenu archive finale)
             </label>
             </br>
             <label>
-                <input type="checkbox" value="autonames">
+                <input type="checkbox" value="autonames" id="autonames">
                 Noms automatiques
             </label>
+            <input type="submit" value="Sauvegarder">
     </form>
 
+    <hr width="100%">
     
+    <div>
+        <label>
+            <button type="button" id="clean_memory"> Nettoyage </button>
+            Effacer toutes les données locales de l'extension (remise à zéro)
+        </label>
+    </div>
     <script src="settings.js"></script>
   </body>
 
