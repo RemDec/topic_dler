@@ -1,10 +1,10 @@
 console.log("popup!");
 
-//Utilitaires navigateur
+
+//-------- utilitaires --------
 onError = browser.extension.getBackgroundPage().onError;
 report_history = browser.extension.getBackgroundPage().report_history;
-
-
+init_request = browser.extension.getBackgroundPage().init_request;
 
 function is_jvc_tab(tab_name){
     if(~(limit = tab_name.indexOf("sur le forum ")))
@@ -29,7 +29,8 @@ function find_jvc_tab(){
     all_tabs_prom.then(find_first_tab, onError);
 };
 
-//Mutateurs popup
+
+//-------- mutateurs DOM --------
 function set_curr_topic(name, url){
     var txt = document.getElementById("topic_name");
     txt.innerHTML = name;
@@ -37,9 +38,23 @@ function set_curr_topic(name, url){
     report_history({ev_type:"found_topic", carac:{name:name, url:url}});
 };
 
-//Events
+
+//-------- events --------
 function open_settings(){
     browser.runtime.openOptionsPage();
+};
+
+function load_basic_settings(){
+    function onGot(settings){
+        basic_options = settings.basic_options;
+        var chk = document.querySelectorAll(".basic");
+        for(var i=0, l=chk.length; i<l; i++){
+            chk[i].checked = basic_options[chk[i].id];
+        }
+        display_settings("storage apres (re)chargement :");
+    }
+    getting = browser.storage.local.get("basic_options");
+    getting.then(onGot, onError);
 };
 
 function refresh_curr_topic(e){
@@ -56,28 +71,23 @@ function refresh_curr_topic(e){
     querying.then(change_curr, function (tab_error) {console.log('Error: ${tab_error}')});
 };
 
-
-function load_basic_settings(){
-    function onGot(settings){
-        basic_options = settings.basic_options;
-        var chk = document.querySelectorAll(".basic");
-        for(var i=0, l=chk.length; i<l; i++){
-            chk[i].checked = basic_options[chk[i].id];
-        }
-        display_settings("storage apres (re)chargement :");
-    }
-    getting = browser.storage.local.get("basic_options");
-    getting.then(onGot, onError);
-};
-
 function display_history(){
-    function onOpened(new_window){
-        
-    }
+    function onOpened(new_window){}
     var win = {type:"panel", url:"../background/history.html",
                height:600, width:800, titlePreface:"Historique topic_dler"};
     browser.windows.create(win).then(onOpened, onError);
-    
+}
+
+function send_request(event){
+    console.log("Init new fast request")
+    var url;
+    if(event.target.id == "dl_fast_button_url")
+        url = document.getElementById("url_input").value;
+    else
+        url = document.getElementById("topic_name").url;
+    var formData = new FormData(document.getElementById("fast_options"));
+    formData.append("url", url);
+    init_request(formData);
 }
 
 
@@ -86,3 +96,5 @@ document.addEventListener("DOMContentLoaded", refresh_curr_topic);
 document.addEventListener("DOMContentLoaded", load_basic_settings);
 document.getElementById("refresh").addEventListener('click', refresh_curr_topic);
 document.getElementById("history").addEventListener('click', display_history);
+document.getElementById("dl_fast_button").addEventListener('click', send_request);
+document.getElementById("dl_fast_button_url").addEventListener('click', send_request);

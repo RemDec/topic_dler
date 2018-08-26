@@ -1,0 +1,14 @@
+----2018-08-26 15:40:03.867765----
+15:40:05 :# POST recu de ('127.0.0.1', 52484)
+15:40:26 :# GET recu de ('127.0.0.1', 52496)
+15:40:26 :# Headers : 
+Host: localhost:8000
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:61.0) Gecko/20100101 Firefox/61.0
+Accept: */*
+Accept-Language: fr,fr-FR;q=0.8,en-US;q=0.5,en;q=0.3
+Accept-Encoding: gzip, deflate
+Origin: moz-extension://7fcd9374-3796-46bb-999c-6b9051ba55e3
+Connection: keep-alive
+
+
+15:40:36 :BODY :

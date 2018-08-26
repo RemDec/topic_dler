@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8">
+  </head>
+
+  <body>
+    <h2><u>Paramètres rapides par défaut</u></h2>
+    <p> Types de ressources qui doivent être minée depuis les posts sélectionnés du topic
+        </br>
+    <form id="myform" >
+        <input id="myt" name="myt" type="text" value="LES DONNEES CEST ICI" />
+        <label>
+            <input type="checkbox" name="autonames" id="autonames">
+            Noms automatiques
+        </label>
+    </form>
+    <button id="b">ICI</button>
+    </p>
+    <p>Result</p>
+    <div id="result" />
+    <script>
+        document.getElementById("b").addEventListener("click", send);
+        function disp_formData(form){
+            for (var [key, value] of form.entries()) { 
+              console.log(key, value);
+            }
+        }
+
+        function send(e){
+            form = new FormData(document.getElementById("myform"));
+            console.log("a envoyer");
+            disp_formData(form);
+            var xhr = new XMLHttpRequest();
+            function statechange(){
+                console.log(xhr.readyState);
+                if (xhr.readyState == 4)
+                    document.getElementById("result").innerHTML = xhr.responseText;
+            }
+            xhr.addEventListener('readystatechange', statechange);
+            xhr.open("POST", "http://localhost:8000/cgi-bin/test.cgi");
+            xhr.send(form);
+        }
+    </script>
+  </body>
+
+</html>

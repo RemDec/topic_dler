@@ -1,10 +1,12 @@
 console.log("script options");
 
-
+//-------- utilitaires --------
 onError = browser.extension.getBackgroundPage().onError;    
 display_settings = browser.extension.getBackgroundPage().display_settings;
 clean_memory = browser.extension.getBackgroundPage().clean_memory;
 
+
+//-------- chargement des paramètres --------
 function load_settings(){
     function onGot(settings){
         basic_options = settings.basic_options;
@@ -20,6 +22,7 @@ function load_settings(){
 };
 
 
+//-------- écriture des nouveaux paramètres --------
 function save_settings(){
     function add_on_obj(obj, form_id){
         var form_elmt = document.querySelector("form[id="+form_id+"]");

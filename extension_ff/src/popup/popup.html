@@ -19,28 +19,29 @@
         </line>  
     </div>
     <hr>
-        <div>
-            <line>
-                <l-text style="margin-right:60px"> Options rapides </l-text>
-                <input class="basic" type="checkbox" id="menu_kheys" checked/>
-                <label for="menu_kheys" style="font-size:0.8em">ajouter au menu</label>
-            </line>
-        </div>
-        <div style="text-align:center">
-            <line style="font-size:0.8em">
-                <input class="basic" type="checkbox" id="img_ok" />
-                <label for="img_ok">images</label>
-                <input class="basic" type="checkbox" id="webm_ok" />
-                <label for="webm_ok">webm</label>
-                <input class="basic" type="checkbox" id="voca_ok" />
-                <label for="voca_ok">vocaroo</label>
-                <input class="basic" type="checkbox" id="posts_ok" />
-                <label for="posts_ok">posts</label>
-                <input class="basic" type="checkbox" id="risi_ok" />
-                <label for="risi_ok">[RISITAS]</label>
-            </line>
-        </div>
-    
+        <form id="fast_options" name="fast_options">
+            <div>
+                <line>
+                    <l-text style="margin-right:60px"> Options rapides </l-text>
+                    <input class="basic" type="checkbox" id="menu_kheys" name="menu_kheys"/>
+                    <label for="menu_kheys" style="font-size:0.8em">ajouter au menu</label>
+                </line>
+            </div>
+            <div style="text-align:center">
+                <line style="font-size:0.8em">
+                    <input class="basic" type="checkbox" id="img_ok" name="img_ok" />
+                    <label for="img_ok">images</label>
+                    <input class="basic" type="checkbox" id="webm_ok" name="webm_ok"/>
+                    <label for="webm_ok">webm</label>
+                    <input class="basic" type="checkbox" id="voca_ok" name="voca_ok"/>
+                    <label for="voca_ok">vocaroo</label>
+                    <input class="basic" type="checkbox" id="post_ok" name="post_ok"/>
+                    <label for="posts_ok">posts</label>
+                    <input class="basic" type="checkbox" id="risi_ok" name="risi_ok" />
+                    <label for="risi_ok">[RISITAS]</label>
+                </line>
+            </div>
+        </form>
     <hr>
     <line>
         <l-text> Topic actuel</l-text>

@@ -1,6 +1,6 @@
 console.log("script background |");
-//Set local default settings if undefined
 
+//-------- utilitaires --------
 function onError(error){console.log('Error:' + error)};
 
 function isEmpty(obj) {
@@ -11,6 +11,12 @@ function isEmpty(obj) {
     return true;
 };
 
+function disp_formData(form){
+    for (var [key, value] of form.entries()) { 
+      console.log(key, value);
+    }
+}
+//-------- accès stockage --------
 function display_settings(prefix){
     function onGot(items){
         console.log(prefix);
@@ -32,7 +38,7 @@ function set_default(){
                 menu_kheys:1
             };
             spec_options = {
-                type_img: "all_img", op_target: 0,
+                type_img: "all_img", only_op: 0,
                 max_size: 500, autonames: 0
             };
             historic = {found_topic:[], requests:[], old_dl:[]};
@@ -53,19 +59,87 @@ function clean_memory(){
     display_settings("Preparation au nettoyage, état actuel :");
     var clearStorage = browser.storage.local.clear();
     clearStorage.then(onCleared, onError);
-}
+};
 
 function apply_on_storage(stor_id, fun, args){
     function onGot(stor){
-        fun(stor[stor_id], args);
         function onWritten(){display_settings("Après appli "+fun.name+" sur "+stor_id)};
+        fun(stor[stor_id], args);
         var to_set = {};
         to_set[stor_id] = stor[stor_id];
         browser.storage.local.set(to_set).then(onWritten);
     }
     browser.storage.local.get(stor_id).then(onGot, onError);
-}
+};
 
+//-------- communications extension --------
+
+//-------- communications serveur --------
+
+function Requester(ask_serv_delay=2){
+    
+    this.ask_serv_delay = ask_serv_delay;
+    this.xhr = new XMLHttpRequest();
+    this.last_resp = "";
+    this.server = "http://localhost:8000";
+    
+    this.create_request = function(form, url="http://localhost:8000"){
+        console.log("lancement requete post");
+        function onChange(){
+            //console.log(this);
+            if(this.readyState===4){
+                console.log(this.responseText);
+                onChange.req.last_resp = this.responseText;
+                console.log(onChange.req);
+                onChange.req.start_ask_serv();
+            }
+        }
+        onChange.req = this;
+        console.log(this);
+        this.xhr = new XMLHttpRequest();
+        this.xhr.addEventListener('readystatechange', onChange);
+        this.xhr.open("POST", url);
+        this.xhr.send(form);
+    };
+    
+    this.start_ask_serv = function(){
+        function delayed_send(xhr){
+            xhr.send(null)
+        }
+        function onResponse(){
+            if(this.readyState === 4){
+                console.log(this.responseText);
+                onResponse.req.last_resp = this.responseText;            
+            }
+        }
+        console.log(this);
+        onResponse.req = this;
+        this.xhr = new XMLHttpRequest();
+        this.xhr.timeout = 10000;
+        this.xhr.addEventListener('readystatechange', onResponse);
+        this.xhr.open("GET", this.server);
+        setTimeout(delayed_send, 20000, this.xhr);
+    };
+        
+};
+
+var requester = new Requester();
+
+function init_request(fast_options){
+    function onGot(stor){
+        var spec = stor["spec_options"];
+        for (var key in spec) {
+            if (spec.hasOwnProperty(key)) {
+                fast_options.append(key, spec[key]);
+            }
+        }
+        requester.create_request(fast_options, "http://localhost:8000");
+    }
+    browser.storage.local.get("spec_options").then(onGot, onError);
+};
+
+
+//-------- events --------
 function report_history(event){
     function save_in_storage(historic, event){
         //event de le forme event = {ev_type:"..", ev_carac:{url:"..", etc}}
@@ -81,7 +155,7 @@ function report_history(event){
     console.log("Nouvel event pour l'historique :");
     console.log(event);
     apply_on_storage("historic", save_in_storage, event);
-}
-
+};
 
 document.addEventListener("DOMContentLoaded", set_default);
+
