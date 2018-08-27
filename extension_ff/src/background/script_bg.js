@@ -74,6 +74,15 @@ function apply_on_storage(stor_id, fun, args){
 
 //-------- communications extension --------
 
+function download(url){
+    function onStartDL(id){
+        console.log("Début du DL de " + url);
+    }
+    console.log("DL >"+url+"\n type" + typeof url);
+    var downloading = browser.downloads.download({"url":url});
+    downloading.then(onStartDL, onError);
+}
+
 //-------- communications serveur --------
 
 function Requester(ask_serv_delay=2){
@@ -82,6 +91,7 @@ function Requester(ask_serv_delay=2){
     this.xhr = new XMLHttpRequest();
     this.last_resp = "";
     this.server = "http://localhost:8000";
+    this.timeout_id = null;
     
     this.create_request = function(form, url="http://localhost:8000"){
         console.log("lancement requete post");
@@ -102,23 +112,51 @@ function Requester(ask_serv_delay=2){
         this.xhr.send(form);
     };
     
+    this.treat_response = function(){
+        console.log("Traitement de la réponse : \n");
+        var json_resp = JSON.parse(this.last_resp);
+        var dler = json_resp["jvc_dler"];
+        var zip = json_resp["archive"];
+        console.log(json_resp);
+        switch(json_resp.status){
+            case "processing":
+                console.log("DL serveur en cours : "+dler.nbr_dl+" objets pour "+dler.curr_page+"/"+dler.max_page+" pages");
+                break;
+            case "zipping":
+                console.log("Zippage en cours");
+                break;
+            case "done":
+                console.log("DL serveur terminé, url ="+zip.url);
+                clearInterval(this.timeout_id);
+                download(zip.url);
+                break;
+            case "cancelled":
+                console.log("Aucun client serveur pour l'IP " + json_resp.address);
+                clearInterval(this.timeout_id);                
+                break;
+            default:
+                console.log("Status serveur inconnu");
+        }
+    };
+    
     this.start_ask_serv = function(){
-        function delayed_send(xhr){
-            xhr.send(null)
-        }
         function onResponse(){
-            if(this.readyState === 4){
-                console.log(this.responseText);
-                onResponse.req.last_resp = this.responseText;            
-            }
-        }
+            //console.log(this.responseText);
+            onResponse.req.last_resp = this.responseText;
+            onResponse.req.treat_response();
+        };
+        
+        function delayed_send(requester){
+            console.log("Envoi d'un GET au serveur ");
+            requester.xhr = new XMLHttpRequest();
+            requester.xhr.timeout = 10000;
+            requester.xhr.addEventListener('loadend', onResponse);
+            requester.xhr.open("GET", requester.server);
+            requester.xhr.send(null);
+        };
         console.log(this);
         onResponse.req = this;
-        this.xhr = new XMLHttpRequest();
-        this.xhr.timeout = 10000;
-        this.xhr.addEventListener('readystatechange', onResponse);
-        this.xhr.open("GET", this.server);
-        setTimeout(delayed_send, 20000, this.xhr);
+        this.timeout_id = setInterval(delayed_send, 5000, this);
     };
         
 };

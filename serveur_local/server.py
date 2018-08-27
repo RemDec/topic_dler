@@ -1,7 +1,9 @@
 #!/usr/bin/env python
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import HTTPServer, BaseHTTPRequestHandler, SimpleHTTPRequestHandler
+from socketserver import ThreadingMixIn
 from io import BytesIO
 from jvc_downloader import *
+from urllib.parse import parse_qs
 import re, os, datetime, threading, time, shutil
 
 
@@ -74,26 +76,25 @@ class JSONer():
         
     def processing(self, client):
         # client = jvc_dler en cours de dl des ressources
-        h = self.get_head('porcessing')
+        h = self.get_head('processing')
         return h[0] + client.to_json() + h[1]
         
     def dl_done(self, client):
         # client = [#perdiodes attendues, lien dl archive]
         h = self.get_head('done')
-        zip = '     "archive":{url:'+ client[1] + ', wait:'+str(client[0])+'}'
+        zip = '"archive":{"url":"'+DOMAIN+client[1][1:] + '", "wait":'+str(client[0])+'}'
         return h[0] + zip + h[1]
         
     def cancelled(self, client_id):
         h = self.get_head('cancelled')
-        c = '       "address":'+client_id
+        c = '"address":"'+client_id + '"'
         return h[0] + c + h[1]
         
 class Zipper_thread(threading.Thread):
     
     def __init__(self, dler):
         threading.Thread.__init__(self)
-        self.ZIP_DIR_PATH = "./zips"
-        os.makedirs(self.ZIP_DIR_PATH, exist_ok=True)
+        os.makedirs(ZIP_DIR_PATH, exist_ok=True)
         self.dler = dler
         self.cont = True
         
@@ -108,7 +109,6 @@ class Zipper_thread(threading.Thread):
         logger.log("client supprimé :" + client_id)
     
     def find_dl_over(self):
-        INTERVAL = 3
         while self.cont:
             # print("Iteration clients pour zipper")
             dl_finished = []
@@ -133,21 +133,20 @@ class Zipper_thread(threading.Thread):
         
     def zippify(self, jvc_dler, client_id):
         logger.log("création zip pour " + client_id)
-        zip_path = self.ZIP_DIR_PATH+ '/' + jvc_dler.target_folder
-        target_dir = self.dler.DL_DIR_PATH+'/'+client_id+'/'+jvc_dler.target_folder
+        zip_path = '.' + ZIP_DIR_PATH+ '/' + jvc_dler.target_folder
+        target_dir = DL_DIR_PATH+'/'+client_id+'/'+jvc_dler.target_folder
         shutil.make_archive(zip_path, 'zip', target_dir)
-        return zip_path
+        return zip_path+'.zip'
     
         
 class Downloader():
 
     def __init__(self, max_client=10):
-        self.DL_DIR_PATH = "./clients_dl"
         self.MAX_TIME_KEEPING = 20
         self.p_controller = Param_controller()
         self.max_client = max_client
         self.curr_clients = {}
-        os.makedirs(self.DL_DIR_PATH, exist_ok=True)
+        os.makedirs(DL_DIR_PATH, exist_ok=True)
         self.zip_thread = Zipper_thread(self)
         self.zip_thread.start()
 
@@ -164,7 +163,7 @@ class Downloader():
         return req.client_address[0]
         
     def init_client_dir(self, client_id, params):
-        client_path = self.DL_DIR_PATH + "/" + client_id
+        client_path = DL_DIR_PATH + "/" + client_id
         os.makedirs(client_path, exist_ok=True)
         params["path"] = client_path
         return client_path
@@ -205,20 +204,29 @@ class Downloader():
         return 0
         
         
-class ExtensionRequestHandler(BaseHTTPRequestHandler):
+class ExtensionRequestHandler(SimpleHTTPRequestHandler):
         
     def do_GET(self):
         self.protocol_version = 'HTTP/1.1'
+        print("--------------------------------")
         logger.log("# GET recu de " + str(self.client_address))
         logger.log("# Headers : \n" + str(self.headers))
-        # logger.log("BODY :" + self.rfile.read(self.headers['Content-Length']).decode('utf-8'))
-        self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Content-Type', 'application/json')
-        to_send = bytes(dler.client_status_json(dler.get_client_id(self)), "utf-8")
-        self.send_header('Content-Length', str(len(to_send)))
-        self.end_headers()
-        self.wfile.write(to_send)
+        logger.log(self.path)
+        #logger.log("BODY :" + self.rfile.read(self.headers['Content-Length']).decode('utf-8'))
+        start_param = self.path.rfind('?')
+        parsed = parse_qs(self.path[start_param+1:])
+        if not "zips" in self.path:
+            self.send_response(200)
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Content-Type', 'application/json')
+            to_send = bytes(dler.client_status_json(dler.get_client_id(self)), "utf-8")
+            self.send_header('Content-Length', str(len(to_send)))
+            self.end_headers()
+            self.wfile.write(to_send)
+        else:
+            # self.path = self.path[:start_param]
+            # print("Nouveau path " + self.path)
+            super().do_GET()
         
         
         
@@ -238,14 +246,23 @@ class ExtensionRequestHandler(BaseHTTPRequestHandler):
             self.send_response(503)
             self.end_headers()
         
-        
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+    """Override de certaines methodes de HTTPServer pour multithreading"""
+
+# constantes
+DOMAIN = "http://localhost:8000"
+DL_DIR_PATH = "./clients_dl"
+ZIP_DIR_PATH = "/zips"
+INTERVAL = 3
+
 
 if __name__=="__main__":
     try:
         jsoner = JSONer()
         logger = Logger()
         dler = Downloader()
-        httpd = HTTPServer(('localhost', 8000), ExtensionRequestHandler)
+        # httpd = HTTPServer(('localhost', 8000), ExtensionRequestHandler)
+        httpd = ThreadedHTTPServer(('localhost', 8000), ExtensionRequestHandler)
         httpd.serve_forever()
     except KeyboardInterrupt:
         print("---------Ctrl+c---------")
