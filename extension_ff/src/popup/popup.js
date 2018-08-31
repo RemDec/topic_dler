@@ -5,6 +5,8 @@ console.log("popup!");
 onError = browser.extension.getBackgroundPage().onError;
 report_history = browser.extension.getBackgroundPage().report_history;
 init_request = browser.extension.getBackgroundPage().init_request;
+cancel_dl = browser.extension.getBackgroundPage().cancel_dl;
+download = browser.extension.getBackgroundPage().download;
 
 function is_jvc_tab(tab_name){
     if(~(limit = tab_name.indexOf("sur le forum ")))
@@ -29,8 +31,18 @@ function find_jvc_tab(){
     all_tabs_prom.then(find_first_tab, onError);
 };
 
+function refresh_icon(){
+    browser.browserAction.setIcon({path:"../../icons/icon-32.png"});
+}
 
 //-------- mutateurs DOM --------
+function init_popup(){
+    refresh_icon();
+    refresh_curr_topic();
+    load_basic_settings();
+    refresh_from_bg();
+}
+
 function set_curr_topic(name, url){
     var txt = document.getElementById("topic_name");
     txt.innerHTML = name;
@@ -38,6 +50,20 @@ function set_curr_topic(name, url){
     report_history({ev_type:"found_topic", carac:{name:name, url:url}});
 };
 
+var cancel_btn = null;
+
+function get_cancel_btn(){
+    if(cancel_btn === null){
+        var btn = document.createElement("div");
+        btn.style = "display:inline-block";
+        btn.id = "cancel_dl";
+        btn.innerHTML = '<img src="../../data/cancel.png" alt="annuler" width="15px" style="vertical-align:-2px">';
+        btn.addEventListener('click', cancel_dl);
+        cancel_btn = btn;
+        return btn;
+    }else
+        return cancel_btn;
+}
 
 //-------- events --------
 function open_settings(){
@@ -85,16 +111,53 @@ function send_request(event){
         url = document.getElementById("url_input").value;
     else
         url = document.getElementById("topic_name").url;
-    var formData = new FormData(document.getElementById("fast_options"));
-    formData.append("url", url);
-    init_request(formData);
+    if(url){
+        var formData = new FormData(document.getElementById("fast_options"));
+        formData.append('url', url);
+        init_request(formData);
+        report_history({ev_type:"requests", carac:{url:url}});
+    }
 }
 
+//----- messages extension ------
 
+function update_dl_state(request){
+    var target = document.getElementById(request.elmt_id);
+    if(request.type == "text" || request.type == "link_img"){
+        target.innerHTML = request.val;
+        target.className = request.new_class;
+    }
+    if(request.type == "link_img"){
+        target.innerHTML = "<div id='dl_div'>"+target.innerHTML+"</div>";
+        var img = document.createElement("img");
+        img.src = request.img; img.alt="dl_img";
+        target.firstChild.appendChild(img);
+        target.addEventListener('click', function(){download(request.url);refresh_icon()});
+    }
+    if(request.type == "bar"){
+        target.innerHTML = "<progress id='prog_bar' value='"+request.curr+"' max='"+request.max+"'/>";
+        target.appendChild(document.createTextNode(request.dled + "objets"));
+        target.appendChild(get_cancel_btn());
+    }
+}
+
+var refresh_fcts = {dl_state:update_dl_state};
+
+function handleMessage(request, sender, sendResponse){
+    refresh_fcts[request.elmt_id](request);
+}
+
+function refresh_from_bg(){
+    for(let id in refresh_fcts){
+        browser.extension.getBackgroundPage().update_popup(id);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", init_popup);
 document.getElementById("settings").addEventListener('click', open_settings);
-document.addEventListener("DOMContentLoaded", refresh_curr_topic);
-document.addEventListener("DOMContentLoaded", load_basic_settings);
 document.getElementById("refresh").addEventListener('click', refresh_curr_topic);
 document.getElementById("history").addEventListener('click', display_history);
 document.getElementById("dl_fast_button").addEventListener('click', send_request);
 document.getElementById("dl_fast_button_url").addEventListener('click', send_request);
+
+browser.runtime.onMessage.addListener(handleMessage);

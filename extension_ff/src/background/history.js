@@ -11,11 +11,12 @@ function link_it(link, short_it=true){
     var a = document.createElement("a");
     a.href = link;
     a.target = "_blank";
+    /*
     if (short_it && link.length > 70)
         link = link.substring(0, 5) + "[..]" + link.substring(55);
     if (link.length > 40)
-        link = "Lien JVC";
-    a.innerHTML = link;
+        link = "Lien JVC";*/
+    a.innerHTML = "Lien JVC";
     return a;
 };
 
@@ -47,11 +48,29 @@ function load_topics(topics){
 };
 
 function load_requests(reqs){
-    
+    console.log("Chargement des requêtes lancées");
+    var main_div = document.getElementById("requests");
+    var new_elmt, link, copy;
+    for(let req of reqs){
+        new_elmt = div_it("request");
+        new_elmt.innerHTML = "<span class='url'>" + req.url + "</span>";
+        new_elmt.appendChild(link_it(req.url));
+        new_elmt.appendChild(get_copy_button(req.url));
+        main_div.appendChild(new_elmt);
+    }
 };
 
 function load_dl(dls){
-    
+    console.log("Chargement des anciens téléchargements");
+    var main_div = document.getElementById("old_dl");
+    var new_elmt, link, copy;
+    for(let dl of dls){
+        new_elmt = div_it("dl");
+        new_elmt.innerHTML = "<span class='zip_url'>" + dl.url + "</span>";
+        new_elmt.appendChild(link_it(dl.url));
+        new_elmt.appendChild(get_copy_button(dl.url));
+        main_div.appendChild(new_elmt);
+    }
 };
 
 function load_history(){

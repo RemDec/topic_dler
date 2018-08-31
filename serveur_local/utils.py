@@ -31,7 +31,7 @@ def to_folder_name(title):
         if letter == " ":
             letter = "_"
         elif letter == "/":
-            letter = "%"
+            letter = "sur"
         elif not letter.isalnum():
             letter = ""
         clean += letter 

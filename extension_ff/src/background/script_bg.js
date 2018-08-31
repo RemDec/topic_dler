@@ -83,9 +83,46 @@ function download(url){
     downloading.then(onStartDL, onError);
 }
 
+function cancel_dl(){
+    if(requester)
+        requester.cancel_getting();
+    else
+        console.log("Aucun requester instancié");
+}
+
+var last_popup_maj = {};
+
+function update_popup(new_val){
+    function onSend(){
+        last_popup_maj[new_val.elmt_id] = new_val;
+        console.log(last_popup_maj);
+    }
+    if(typeof(new_val) == "string")
+        new_val = last_popup_maj[new_val];
+    if(new_val){
+        var sending = browser.runtime.sendMessage(new_val);
+        sending.then(onSend);
+    }
+}
+
+function alert_dl_ready(zip){
+    var dl_url = zip.url;
+    browser.browserAction.setIcon({path:"../../icons/icon-32-notif.png"});
+    var popup_dl = {elmt_id:"dl_state", new_class:"dl_link", type:"link_img",
+                    val:"Télécharger l'archive", url:dl_url, img:"../../data/icon-dl.png"};
+    update_popup(popup_dl);
+    report_history({ev_type:"old_dl", carac:{url:dl_url}});
+}
+
+function alert_progress(dler){
+    var p = {elmt_id:"dl_state", new_class:"progress", type:"bar",
+            min:0, max:dler.max_page, curr:dler.curr_page, dled:dler.nbr_dl};
+    update_popup(p);
+}
+
 //-------- communications serveur --------
 
-function Requester(ask_serv_delay=2){
+function Requester(ask_serv_delay=4){
     
     this.ask_serv_delay = ask_serv_delay;
     this.xhr = new XMLHttpRequest();
@@ -94,54 +131,26 @@ function Requester(ask_serv_delay=2){
     this.timeout_id = null;
     
     this.create_request = function(form, url="http://localhost:8000"){
-        console.log("lancement requete post");
         function onChange(){
-            //console.log(this);
-            if(this.readyState===4){
-                console.log(this.responseText);
+            if(this.status===200){
                 onChange.req.last_resp = this.responseText;
-                console.log(onChange.req);
                 onChange.req.start_ask_serv();
+            }else{
+                var popup_infos = {elmt_id:"dl_state", new_class:"txt_error",
+                                   type:"text", val:"serveur "+onChange.req.server+" injoignable"};
+                update_popup(popup_infos);
             }
         }
         onChange.req = this;
-        console.log(this);
         this.xhr = new XMLHttpRequest();
-        this.xhr.addEventListener('readystatechange', onChange);
+        this.xhr.timeout = 4000;
+        this.xhr.addEventListener('loadend', onChange);
         this.xhr.open("POST", url);
         this.xhr.send(form);
     };
     
-    this.treat_response = function(){
-        console.log("Traitement de la réponse : \n");
-        var json_resp = JSON.parse(this.last_resp);
-        var dler = json_resp["jvc_dler"];
-        var zip = json_resp["archive"];
-        console.log(json_resp);
-        switch(json_resp.status){
-            case "processing":
-                console.log("DL serveur en cours : "+dler.nbr_dl+" objets pour "+dler.curr_page+"/"+dler.max_page+" pages");
-                break;
-            case "zipping":
-                console.log("Zippage en cours");
-                break;
-            case "done":
-                console.log("DL serveur terminé, url ="+zip.url);
-                clearInterval(this.timeout_id);
-                download(zip.url);
-                break;
-            case "cancelled":
-                console.log("Aucun client serveur pour l'IP " + json_resp.address);
-                clearInterval(this.timeout_id);                
-                break;
-            default:
-                console.log("Status serveur inconnu");
-        }
-    };
-    
     this.start_ask_serv = function(){
         function onResponse(){
-            //console.log(this.responseText);
             onResponse.req.last_resp = this.responseText;
             onResponse.req.treat_response();
         };
@@ -154,9 +163,52 @@ function Requester(ask_serv_delay=2){
             requester.xhr.open("GET", requester.server);
             requester.xhr.send(null);
         };
-        console.log(this);
         onResponse.req = this;
-        this.timeout_id = setInterval(delayed_send, 5000, this);
+        this.timeout_id = setInterval(delayed_send, this.ask_serv_delay*1000, this);
+    };
+    
+    this.treat_response = function(){
+        console.log("Traitement de la réponse : \n");
+        var json_resp = JSON.parse(this.last_resp);
+        var dler = json_resp["jvc_dler"];
+        var zip = json_resp["archive"];
+        console.log(json_resp);
+        switch(json_resp.status){
+            case "processing":
+                console.log("DL serveur en cours : "+dler.nbr_dl+" objets pour "+dler.curr_page+"/"+dler.max_page+" pages");
+                alert_progress(dler);
+                break;
+            case "zipping":
+                console.log("Zippage en cours");
+                break;
+            case "done":
+                console.log("DL serveur terminé, url ="+zip.url);
+                clearInterval(this.timeout_id);
+                this.timeout_id = null;
+                //download(zip.url);
+                alert_dl_ready(zip);
+                break;
+            case "cancelled":
+                console.log("Aucun client serveur pour l'IP " + json_resp.address);
+                clearInterval(this.timeout_id);
+                this.timeout_id = null;
+                break;
+            default:
+                console.log("Status serveur inconnu");
+        }
+    };
+    
+    this.is_getting = function(){
+        return !(this.timeout_id === null);
+    };
+    
+    this.cancel_getting = function(){
+        if(this.is_getting()){
+            clearInterval(this.timeout_id);
+            var popup_infos = {elmt_id:"dl_state", new_class:"txt_error",
+                                type:"text", val:"requête annulée"};
+            update_popup(popup_infos);
+        }
     };
         
 };
@@ -174,6 +226,9 @@ function init_request(fast_options){
         requester.create_request(fast_options, "http://localhost:8000");
     }
     browser.storage.local.get("spec_options").then(onGot, onError);
+    var popup_infos = {elmt_id:"dl_state", new_class:"",
+                       type:"text", val:"contact du serveur.."};
+    update_popup(popup_infos);
 };
 
 
@@ -181,7 +236,7 @@ function init_request(fast_options){
 function report_history(event){
     function save_in_storage(historic, event){
         //event de le forme event = {ev_type:"..", ev_carac:{url:"..", etc}}
-        //history de la forme history = {ev_type1:[carac1, carac2,..], ev_type2:[],..}        
+        //historic de la forme historic = {ev_type1:[carac1, carac2,..], ev_type2:[],..}        
         var all_carac = historic[event.ev_type];
         for(let carac of all_carac){
             if(carac.name == event.carac.name)

@@ -152,12 +152,15 @@ class Downloader():
 
     def accept_client(self, client_req):
         if len(self.curr_clients.keys()) >= self.max_client:
-            return False
+            return (False, "Too much clients")
         client_id = self.get_client_id(client_req)
-        jvc_dler_thread = self.new_client_thread(client_req, client_id)
-        self.curr_clients[client_id] = jvc_dler_thread.jvc_dler
-        jvc_dler_thread.start()
-        return jsoner.processing(jvc_dler_thread.jvc_dler)
+        try:
+            jvc_dler_thread = self.new_client_thread(client_req, client_id)
+            self.curr_clients[client_id] = jvc_dler_thread.jvc_dler
+            jvc_dler_thread.start()
+            return (True, jsoner.processing(jvc_dler_thread.jvc_dler))
+        except Exception as e:
+            return (False, str(e))
         
     def get_client_id(self, req):
         return req.client_address[0]
@@ -224,8 +227,6 @@ class ExtensionRequestHandler(SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(to_send)
         else:
-            # self.path = self.path[:start_param]
-            # print("Nouveau path " + self.path)
             super().do_GET()
         
         
@@ -233,18 +234,23 @@ class ExtensionRequestHandler(SimpleHTTPRequestHandler):
     def do_POST(self):
         self.protocol_version = 'HTTP/1.1'
         logger.log("# POST recu de " + str(self.client_address))
-        accept_client = dler.accept_client(self)
+        (accept_client, state) = dler.accept_client(self)
         if accept_client:
             self.send_response(200)
             self.send_header('Access-Control-Allow-Origin', '*')
             self.send_header('Content-Type', 'application/json')
-            resp = bytes(accept_client, "utf-8")
+            resp = bytes(state, "utf-8")
             self.send_header('Content-Length', str(len(resp)))
             self.end_headers()
             self.wfile.write(resp)
         else:
             self.send_response(503)
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Content-Type', 'text/plain')
+            resp = bytes(state, "utf-8")
+            self.send_header('Content-Length', str(len(resp)))
             self.end_headers()
+            self.wfile.write(resp)
         
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Override de certaines methodes de HTTPServer pour multithreading"""

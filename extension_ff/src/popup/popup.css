@@ -48,11 +48,32 @@ line childElements {
 button[type=button] {
     font-family: 'quicksand', 'caviar_dreams', Arial, serif;
     cursor : pointer;
-    width : 110px;
+    width : 115px;
     height : 23px;
     background-image : url("../../data/bouton2.png");
     background-color : transparent;
     background-repeat : no-repeat;
     background-size : 100% 100%;
     border : 0px;
+}
+
+.txt_error {
+    color : red;
+}
+
+#cancel_dl {
+    width:15px;
+    cursor:pointer;
+    margin-left: 10px;
+}
+
+#dl_div {
+    background-image:linear-gradient(to right, rgba(125, 176, 233, 0.39), #4c86b1, rgba(125, 176, 233, 0.39));
+    cursor : pointer;
+}
+
+#dl_div > img {
+    width:20px;
+    vertical-align:-7px;
+    margin:5px 0px 5px 10px;
 }

@@ -1,64 +1,30 @@
-----2018-08-27 00:32:51.610534----
-00:32:57 :# POST recu de ('127.0.0.1', 56606)
-00:33:03 :# GET recu de ('127.0.0.1', 56619)
-00:33:03 :# Headers : 
+----2018-08-31 00:23:03.555507----
+00:23:09 :# POST recu de ('127.0.0.1', 57256)
+00:23:15 :# GET recu de ('127.0.0.1', 57267)
+00:23:15 :# Headers : 
 Host: localhost:8000
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:61.0) Gecko/20100101 Firefox/61.0
 Accept: */*
 Accept-Language: fr,fr-FR;q=0.8,en-US;q=0.5,en;q=0.3
 Accept-Encoding: gzip, deflate
-Origin: moz-extension://7fcd9374-3796-46bb-999c-6b9051ba55e3
+Origin: moz-extension://2cc50b2a-b5e6-40e5-8bd7-f69013f39dfa
 Connection: keep-alive
 
 
-00:33:03 :/
-00:33:08 :# GET recu de ('127.0.0.1', 56624)
-00:33:08 :# Headers : 
+00:23:15 :/
+00:23:15 :création zip pour 127.0.0.1
+00:23:15 :zip créé pour client 127.0.0.1 (path=./zips/SEXE__Tu_as_une_COPINE_Viens_ici.zip)
+00:23:19 :# GET recu de ('127.0.0.1', 57268)
+00:23:19 :# Headers : 
 Host: localhost:8000
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:61.0) Gecko/20100101 Firefox/61.0
 Accept: */*
 Accept-Language: fr,fr-FR;q=0.8,en-US;q=0.5,en;q=0.3
 Accept-Encoding: gzip, deflate
-Origin: moz-extension://7fcd9374-3796-46bb-999c-6b9051ba55e3
+Origin: moz-extension://2cc50b2a-b5e6-40e5-8bd7-f69013f39dfa
 Connection: keep-alive
 
 
-00:33:08 :/
-00:33:13 :# GET recu de ('127.0.0.1', 56636)
-00:33:13 :# Headers : 
-Host: localhost:8000
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:61.0) Gecko/20100101 Firefox/61.0
-Accept: */*
-Accept-Language: fr,fr-FR;q=0.8,en-US;q=0.5,en;q=0.3
-Accept-Encoding: gzip, deflate
-Origin: moz-extension://7fcd9374-3796-46bb-999c-6b9051ba55e3
-Connection: keep-alive
-
-
-00:33:13 :/
-00:33:15 :création zip pour 127.0.0.1
-00:33:15 :zip créé pour client 127.0.0.1 (path=./zips/Je_note_vos_parfums%10.zip)
-00:33:18 :# GET recu de ('127.0.0.1', 56639)
-00:33:18 :# Headers : 
-Host: localhost:8000
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:61.0) Gecko/20100101 Firefox/61.0
-Accept: */*
-Accept-Language: fr,fr-FR;q=0.8,en-US;q=0.5,en;q=0.3
-Accept-Encoding: gzip, deflate
-Origin: moz-extension://7fcd9374-3796-46bb-999c-6b9051ba55e3
-Connection: keep-alive
-
-
-00:33:18 :/
-00:33:18 :# GET recu de ('127.0.0.1', 56640)
-00:33:18 :# Headers : 
-Host: localhost:8000
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:61.0) Gecko/20100101 Firefox/61.0
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
-Accept-Language: fr,fr-FR;q=0.8,en-US;q=0.5,en;q=0.3
-Accept-Encoding: gzip, deflate
-Connection: keep-alive
-
-
-00:33:18 :/zips/Je_note_vos_parfums%10.zip
-00:33:36 :client supprimé :127.0.0.1
+00:23:19 :/
+00:23:36 :client supprimé :127.0.0.1
+00:23:47 :# POST recu de ('127.0.0.1', 57271)

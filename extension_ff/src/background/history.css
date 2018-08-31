@@ -35,4 +35,5 @@ h2 {
     font-size : 1em;
     display : inline-block;
     height : 100%;
+    cursor : pointer;
 }
