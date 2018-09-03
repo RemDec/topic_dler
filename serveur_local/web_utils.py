@@ -8,11 +8,14 @@ from socket import timeout
 
         
 class Page_not_foundError(Exception):
-    def __init__(self, url):
+    def __init__(self, url, err_tuple=None):
         self.url = url
+        self.err_tuple = err_tuple
     def __str__(self):
-        return "Error 404 - page " + self.url + " not found." 
-        
+        if self.err_tuple is None:
+            return "Error 404 - page " + self.url + " not found." 
+        else:
+            return str(self.err_tuple[0]) + "-" + str(self.err_tuple[1])
         
         
 def http_request(url, u_a = None, keep = False):
@@ -35,10 +38,13 @@ def http_request(url, u_a = None, keep = False):
         return (err.code, err)
     except (error.URLError, ValueError):
         print("URL incorrect")
+        return (0, "URL incorrect")
     except timeout:
         print("Timeout")
+        return (0, "Timeout")
     except ssl.SSLWantReadError as e:
         print("Unknown error : " + str(e))
+        return (0, "Erreur SSL")
         
 def open_page(url, is_local_url=False, sv_html=False, filename='page.html'):
     """

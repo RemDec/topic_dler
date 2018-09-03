@@ -80,7 +80,11 @@ class Post():
             return s.decode("utf-8").replace('    ', ' ').replace('>', '>\n')
         else:
             return s.decode("utf-8")
-    
+
+
+
+# Un topic parcouru a partir d'un url d'une de ses pages et qui permet de
+# le parcourir par des instances de Post    
 class Topic():
                      
     def __init__(self, url):
@@ -88,7 +92,7 @@ class Topic():
         self.is_local_url = not "http" in url
         main_page = open_page(url, self.is_local_url)
         if main_page is None or type(main_page) is tuple:
-            raise Page_not_foundError(url)
+            raise Page_not_foundError(url, main_page)
         self.req = self.init_requests()
         self.tree = tree_from_page(main_page)
         self.topic_tree = self.tree.xpath(self.req['topic'])[0]

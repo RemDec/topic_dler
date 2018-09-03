@@ -42,12 +42,13 @@ class Jvc_downloader():
         if params['only_op']:
             self.sel_posters.add(self.topic.op)
         self.sel_posters.update(params['sel_pseudos'])
+        
+        if self.risi_ok:
+            self.post_ok = True
+            self.risi_selector = Risitas_selector(self.topic, params['sel_pseudos'])
 
         if self.post_ok:
             self.html = Post_HTML_writer(self.topic)
-        
-        if self.risi_ok:
-            self.risi_selector = Risitas_selector(self.topic, params['sel_pseudos'])
         
     def init_dir(self, tree):    
         if self.params['path'] != "<current working directory>":
@@ -328,13 +329,22 @@ class Jvc_downloader():
         
     def to_json(self):
         title = self.topic.title.replace('"', '\'')
-        return     ('"jvc_dler":{"title":"'+title+'", "nbr_dl":'+ str(self.num_dl) +
-                    ',"curr_page":'+str(self.topic.curr_page) + ',"max_page":'+str(self.topic.max_page) + 
-                    '}')
+        topic = self.topic
+        return ('"jvc_dler":{"title":"'+title+'", "topic_url":"'+topic.main_url+
+                '","author":"'+topic.op+'", "nbr_dl":'+ str(self.num_dl)+
+                ',"curr_page":'+str(topic.curr_page)+',"max_page":'+str(topic.max_page)+ 
+                '}')
 
     def stop(self):
         self.display("Exécution avortée !!!")
         self.stop_dl = True;
+
+    def get_topic_info(self):
+        return {"title":self.topic.title, "url":self.topic.main_url, "author":self.topic.op}
+
+
+
+#Thread associe a l'objet
          
 class DLing_thread(threading.Thread):
 

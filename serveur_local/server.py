@@ -82,13 +82,23 @@ class JSONer():
     def dl_done(self, client):
         # client = [#perdiodes attendues, lien dl archive]
         h = self.get_head('done')
-        zip = '"archive":{"url":"'+DOMAIN+client[1][1:] + '", "wait":'+str(client[0])+'}'
+        zip = ('"archive":{"url":"'+DOMAIN+client[1][1:] + '", "wait":'+str(client[0])+'},'+
+               client[2]) 
         return h[0] + zip + h[1]
         
     def cancelled(self, client_id):
         h = self.get_head('cancelled')
         c = '"address":"'+client_id + '"'
         return h[0] + c + h[1]
+
+    def error(self, err_str):
+        h = self.get_head('error')
+        i = err_str.find('-')
+        code = err_str[:i]
+        if i < 0:
+            code = "000" 
+        e = '"error":{"code":"'+code+'", "reason":"'+err_str[i+1:]+'"}'
+        return h[0] + e + h[1]
         
 class Zipper_thread(threading.Thread):
     
@@ -118,15 +128,15 @@ class Zipper_thread(threading.Thread):
                     # Le dl vient de se terminer, zippage et recup du chemin de l'archive
                     zipath = self.zippify(jvc_dler, client_id)
                     logger.log("zip créé pour client "+client_id+" (path="+zipath+")")
-                    dl_finished.append((client_id, zipath))
+                    dl_finished.append((client_id, zipath, jvc_dler.to_json()))
                 elif type(jvc_dler) is list:
                     # Archive prete, en attente du dl depuis client
                     zipinfo = jvc_dler
                     zipinfo[0] += 1
                     if zipinfo[0]*INTERVAL > self.dler.MAX_TIME_KEEPING:
                         overtimed.append(client_id)
-            for client_id, zipath in dl_finished:
-                self.dler.curr_clients[client_id] = [0, zipath]
+            for client_id, zipath, topic_info in dl_finished:
+                self.dler.curr_clients[client_id] = [0, zipath, topic_info]
             for client_id in overtimed:
                 self.delete_client_res(client_id)
             time.sleep(INTERVAL)
@@ -212,12 +222,10 @@ class ExtensionRequestHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
         self.protocol_version = 'HTTP/1.1'
         print("--------------------------------")
-        logger.log("# GET recu de " + str(self.client_address))
-        logger.log("# Headers : \n" + str(self.headers))
-        logger.log(self.path)
+        logger.log("# GET received from " + str(self.client_address))
+        #logger.log("# Headers : \n" + str(self.headers))
+        logger.log("    for the path " + self.path)
         #logger.log("BODY :" + self.rfile.read(self.headers['Content-Length']).decode('utf-8'))
-        start_param = self.path.rfind('?')
-        parsed = parse_qs(self.path[start_param+1:])
         if not "zips" in self.path:
             self.send_response(200)
             self.send_header('Access-Control-Allow-Origin', '*')
@@ -233,24 +241,25 @@ class ExtensionRequestHandler(SimpleHTTPRequestHandler):
         
     def do_POST(self):
         self.protocol_version = 'HTTP/1.1'
-        logger.log("# POST recu de " + str(self.client_address))
+        logger.log("# POST received from " + str(self.client_address))
         (accept_client, state) = dler.accept_client(self)
+
         if accept_client:
-            self.send_response(200)
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.send_header('Content-Type', 'application/json')
+            # Script lance pour le nouveau client 
+            code = 200
             resp = bytes(state, "utf-8")
-            self.send_header('Content-Length', str(len(resp)))
-            self.end_headers()
-            self.wfile.write(resp)
         else:
-            self.send_response(503)
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.send_header('Content-Type', 'text/plain')
-            resp = bytes(state, "utf-8")
-            self.send_header('Content-Length', str(len(resp)))
-            self.end_headers()
-            self.wfile.write(resp)
+            # Erreur url invalide, trop de clients..
+            code = 503
+            resp = bytes(jsoner.error(state), "utf-8")
+
+        self.send_response(code)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Content-Length', str(len(resp)))
+        self.end_headers()
+        self.wfile.write(resp)
+        logger.log("# POST reply to "+str(self.client_address)+" code :"+str(code))
         
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Override de certaines methodes de HTTPServer pour multithreading"""
@@ -267,8 +276,8 @@ if __name__=="__main__":
         jsoner = JSONer()
         logger = Logger()
         dler = Downloader()
-        # httpd = HTTPServer(('localhost', 8000), ExtensionRequestHandler)
         httpd = ThreadedHTTPServer(('localhost', 8000), ExtensionRequestHandler)
+        print("#########--Lancement du serveur--#########")
         httpd.serve_forever()
     except KeyboardInterrupt:
         print("---------Ctrl+c---------")

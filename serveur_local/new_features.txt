@@ -1,0 +1,20 @@
+- retour erreur client détaillée
+- meilleur css historique
+- alerte serveur si dl annulé
+- info client zippage
+- éviter requêtes vides (aucun type coché) 
+---------------
+- garder trace des infos utiles une fois jvc_dler fini (titre, auteur, etc.)
+- gérer limitation taille archive
+- si ajouter au menu garder l'archive + la renseigner dans bdd, sinon la suppr
+- gérer réception cancel requête client (fin thread correspondant)
+---------------
+options:
+    - dl direct ou pas
+    - ciblage des autres forumeurs que l'op
+- crédits/dédis
+- son fin dl
+- switch dans tableau topics actifs avec 2 flèches <- *current* ->
+- meilleurs logs serveur
+- option ajout XML pour infos sur le topic+ressources dl
+- meilleur css posts/risitas

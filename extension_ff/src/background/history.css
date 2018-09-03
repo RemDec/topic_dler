@@ -1,3 +1,16 @@
+
+@font-face {
+    font-family: 'caviar_dreams';
+    src : url("../../data/CaviarDreams.ttf") format('truetype');
+}
+
+@font-face {
+    font-family: 'quicksand';
+    src : url("../../data/Quicksand.otf") format('opentype');
+}
+
+
+
 body {
     font-family: 'quicksand', 'caviar_dreams', Arial, serif;
     font-size : 1em;

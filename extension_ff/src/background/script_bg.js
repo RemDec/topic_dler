@@ -95,7 +95,6 @@ var last_popup_maj = {};
 function update_popup(new_val){
     function onSend(){
         last_popup_maj[new_val.elmt_id] = new_val;
-        console.log(last_popup_maj);
     }
     if(typeof(new_val) == "string")
         new_val = last_popup_maj[new_val];
@@ -105,13 +104,15 @@ function update_popup(new_val){
     }
 }
 
-function alert_dl_ready(zip){
+function alert_dl_ready(zip, dler){
     var dl_url = zip.url;
     browser.browserAction.setIcon({path:"../../icons/icon-32-notif.png"});
     var popup_dl = {elmt_id:"dl_state", new_class:"dl_link", type:"link_img",
                     val:"Télécharger l'archive", url:dl_url, img:"../../data/icon-dl.png"};
     update_popup(popup_dl);
-    report_history({ev_type:"old_dl", carac:{url:dl_url}});
+    var ev_carac = {url:dl_url, topic_url:dler.topic_url,topic_title:dler.title,
+                    author:dler.author, nbr_dl:dler.nbr_dl};
+    report_history({ev_type:"old_dl", carac:ev_carac});
 }
 
 function alert_progress(dler){
@@ -175,7 +176,7 @@ function Requester(ask_serv_delay=4){
         console.log(json_resp);
         switch(json_resp.status){
             case "processing":
-                console.log("DL serveur en cours : "+dler.nbr_dl+" objets pour "+dler.curr_page+"/"+dler.max_page+" pages");
+                console.log("DL serveur en cours : "+dler.nbr_dl+" objets "+dler.curr_page+"/"+dler.max_page+" pages");
                 alert_progress(dler);
                 break;
             case "zipping":
@@ -186,7 +187,7 @@ function Requester(ask_serv_delay=4){
                 clearInterval(this.timeout_id);
                 this.timeout_id = null;
                 //download(zip.url);
-                alert_dl_ready(zip);
+                alert_dl_ready(zip, dler);
                 break;
             case "cancelled":
                 console.log("Aucun client serveur pour l'IP " + json_resp.address);
