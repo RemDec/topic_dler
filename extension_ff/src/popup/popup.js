@@ -31,6 +31,14 @@ function find_jvc_tab(){
     all_tabs_prom.then(find_first_tab, onError);
 };
 
+function topic_name_to_span(name){
+    var span = document.createElement("span");
+    if(name.length > 73)
+        name = name.substring(0, 70) + '...';
+    span.innertHTML = name;
+    return span;
+}
+
 function refresh_icon(){
     browser.browserAction.setIcon({path:"../../icons/icon-32.png"});
 }
@@ -84,7 +92,6 @@ function load_basic_settings(){
 };
 
 function refresh_curr_topic(e){
-    //document.getElementById("refresh").style.transform = "rotate(90deg)";
     function change_curr(tabs){
         var curr_tab = tabs[0];
         var curr_topic_name = is_jvc_tab(curr_tab.title);
@@ -100,7 +107,7 @@ function refresh_curr_topic(e){
 function display_history(){
     function onOpened(new_window){}
     var win = {type:"panel", url:"../background/history.html",
-               height:600, width:800, titlePreface:"Historique topic_dler"};
+               height:800, width:1000, titlePreface:"Historique topic_dler"};
     browser.windows.create(win).then(onOpened, onError);
 }
 
@@ -115,7 +122,7 @@ function send_request(event){
         var formData = new FormData(document.getElementById("fast_options"));
         formData.append('url', url);
         init_request(formData);
-        report_history({ev_type:"requests", carac:{url:url}});
+        report_history({ev_type:"requests", carac:{name:url, url:url}});
     }
 }
 
@@ -133,10 +140,11 @@ function update_dl_state(request){
         img.src = request.img; img.alt="dl_img";
         target.firstChild.appendChild(img);
         target.addEventListener('click', function(){download(request.url);refresh_icon()});
+        target.firstChild.appendChild
     }
     if(request.type == "bar"){
         target.innerHTML = "<progress id='prog_bar' value='"+request.curr+"' max='"+request.max+"'/>";
-        target.appendChild(document.createTextNode(request.dled + "objets"));
+        target.appendChild(document.createTextNode(request.dled + " objets "));
         target.appendChild(get_cancel_btn());
     }
 }

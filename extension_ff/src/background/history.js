@@ -47,6 +47,13 @@ function get_copy_button(url){
     return btn;
 };
 
+function get_linked_line(url, prefix = "Lien", copy_btn=true, classname="prefixed"){
+    var btn = copy_btn ? get_copy_button(url) : "";
+    var prefix_linked = link_it(url, true, prefix);
+    var h = copy_btn ? prefix_linked.outerHTML+" ["+btn.outerHTML+"]" : prefix_linked.outerHTML;
+    return div_it(classname, "", h+" : <em>" + url + "</em>");
+}
+
 function load_topics(topics){
     console.log("Chargement des topics visités");
     var main_div = document.getElementById("found_topic");
@@ -66,33 +73,32 @@ function load_requests(reqs){
     var main_div = document.getElementById("requests");
     var new_elmt, link, copy;
     for(let req of reqs){
-        new_elmt = div_it("request");
-        new_elmt.innerHTML = "<span class='url'>" + req.url + "</span>";
-        new_elmt.appendChild(link_it(req.url));
-        new_elmt.appendChild(get_copy_button(req.url));
+        new_elmt = get_linked_line(req.url, "Lien JVC", true, "t_link");
         main_div.appendChild(new_elmt);
     }
 };
+
+function get_dl_carac(dl){
+    var p = dl.max_page > 1 ? " pages ~ " : " page ~ ";
+    var o = dl.nbr_dl > 1 ? " objets téléchargés" : " objet téléchargé";
+    var carac = "Auteur : "+dl.author+" ~ "+dl.max_page+ p +dl.nbr_dl+ o;
+    return div_it("dl_carac", "", carac);
+}
 
 function load_dl(dls){
     console.log("Chargement des anciens téléchargements");
     var main_div = document.getElementById("old_dl");
     var new_elmt, t_link, copy, t_title;
     for(let dl of dls){
-        //console.log("dl a traiter : ");
-        console.log(dl);
         new_elmt = div_it("dl", "background-color:#d6f2ff");
         t_title = document.createElement("h3");
         console.log(dl.topic_title);
         t_title.innerHTML = dl.topic_title;
-        t_op = div_it("op", "", "Auteur :"+dl.author);
-        t_link = div_it("t_link", "", " : <em>"+dl.topic_url+"</em>");
-        t_link.insertBefore(link_it(dl.topic_url), t_link.firstChild);
-        t_link.insertBefore(get_copy_button(dl.topic_url), t_link.firstChild);
-
-        zip = div_it("zip_link", "", " : <em>"+dl.url+"</em>");
-        zip.insertBefore(link_it(dl.url, true, "Lien de dl"), zip.firstChild);
-        app_children(new_elmt, [t_title, t_op, t_link, zip]);
+        t_carac = get_dl_carac(dl);
+        t_link = get_linked_line(dl.topic_url, "Lien JVC", true, "t_link");
+        zip_link = get_linked_line(dl.url, "Lien de DL", true, "zip_link");
+        
+        app_children(new_elmt, [t_title, t_carac, t_link, zip_link]);
         main_div.appendChild(new_elmt);
     }
     

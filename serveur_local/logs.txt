@@ -1,47 +1,42 @@
-----2018-09-01 20:14:53.344362----
-20:16:49 :# POST received from ('127.0.0.1', 47484)
-20:16:50 :# POST reply to ('127.0.0.1', 47484) code :200
-20:16:53 :création zip pour 127.0.0.1
-20:16:53 :zip créé pour client 127.0.0.1 (path=./zips/Le_rappeur_francais_le_plus_intelligent_.zip)
-20:16:54 :# GET received from ('127.0.0.1', 47494)
-20:16:54 :    for the path /
-20:17:14 :client supprimé :127.0.0.1
-20:50:35 :# POST received from ('127.0.0.1', 47766)
-20:50:36 :# POST reply to ('127.0.0.1', 47766) code :200
-20:50:40 :# GET received from ('127.0.0.1', 47796)
-20:50:40 :    for the path /
-20:50:44 :# GET received from ('127.0.0.1', 47816)
-20:50:44 :    for the path /
-20:50:46 :création zip pour 127.0.0.1
-20:50:46 :zip créé pour client 127.0.0.1 (path=./zips/PHOTO_Le_Soleil_ce_dechet.zip)
-20:50:48 :# GET received from ('127.0.0.1', 47818)
-20:50:48 :    for the path /
-20:51:07 :client supprimé :127.0.0.1
-21:55:50 :# POST received from ('127.0.0.1', 49246)
-21:55:51 :# POST reply to ('127.0.0.1', 49246) code :200
-21:55:55 :# GET received from ('127.0.0.1', 49284)
-21:55:55 :    for the path /
-21:55:59 :# GET received from ('127.0.0.1', 49324)
-21:55:59 :    for the path /
-21:56:03 :# GET received from ('127.0.0.1', 49346)
-21:56:03 :    for the path /
-21:56:05 :création zip pour 127.0.0.1
-21:56:05 :zip créé pour client 127.0.0.1 (path=./zips/Je_suis_une_vraie_celestine.zip)
-21:56:07 :# GET received from ('127.0.0.1', 49352)
-21:56:07 :    for the path /
-21:56:26 :client supprimé :127.0.0.1
-21:49:43 :# POST received from ('127.0.0.1', 51058)
-21:49:44 :# POST reply to ('127.0.0.1', 51058) code :200
-21:49:48 :# GET received from ('127.0.0.1', 51090)
-21:49:48 :    for the path /
-21:49:52 :# GET received from ('127.0.0.1', 51106)
-21:49:52 :    for the path /
-21:49:55 :création zip pour 127.0.0.1
-21:49:55 :zip créé pour client 127.0.0.1 (path=./zips/Si_leruption_solaire_de_1859_arrivait_aujourdhui.zip)
-21:49:56 :# GET received from ('127.0.0.1', 51108)
-21:49:56 :    for the path /
-21:50:16 :client supprimé :127.0.0.1
-10:38:28 :# GET received from ('127.0.0.1', 51988)
-10:38:28 :    for the path /zips/Si_leruption_solaire_de_1859_arrivait_aujourdhui.zip
-15:37:59 :# GET received from ('127.0.0.1', 52058)
-15:37:59 :    for the path /zips/PHOTO_Le_Soleil_ce_dechet.zip
+----2018-09-05 21:03:20.581846----
+21:03:32 :# POST received from 127.0.0.1
+21:03:35 :# POST reply to 127.0.0.1 code :200
+21:03:39 :# GET received from ('127.0.0.1', 53262)
+21:03:39 :    for the path /
+21:03:43 :# GET received from ('127.0.0.1', 53270)
+21:03:43 :    for the path /
+21:03:47 :# GET received from ('127.0.0.1', 53277)
+21:03:47 :    for the path /
+21:03:51 :# GET received from ('127.0.0.1', 53318)
+21:03:51 :    for the path /
+21:03:55 :# GET received from ('127.0.0.1', 53355)
+21:03:55 :    for the path /
+21:03:59 :# GET received from ('127.0.0.1', 53363)
+21:03:59 :    for the path /
+21:04:03 :# GET received from ('127.0.0.1', 53368)
+21:04:03 :    for the path /
+21:04:07 :# GET received from ('127.0.0.1', 53378)
+21:04:07 :    for the path /
+21:04:11 :# GET received from ('127.0.0.1', 53387)
+21:04:11 :    for the path /
+21:04:15 :# GET received from ('127.0.0.1', 53394)
+21:04:15 :    for the path /
+21:04:19 :# GET received from ('127.0.0.1', 53404)
+21:04:19 :    for the path /
+21:04:23 :# GET received from ('127.0.0.1', 53411)
+21:04:23 :    for the path /
+21:04:27 :# GET received from ('127.0.0.1', 53434)
+21:04:27 :    for the path /
+21:04:31 :# GET received from ('127.0.0.1', 53444)
+21:04:31 :    for the path /
+21:04:35 :# GET received from ('127.0.0.1', 53454)
+21:04:35 :    for the path /
+21:04:39 :# GET received from ('127.0.0.1', 53490)
+21:04:39 :    for the path /
+21:04:41 :cr�ation zip pour 127.0.0.1
+21:04:41 :zip cr�� pour client 127.0.0.1 (path=./zips/MONS_Des_kheys_lannee_prochaine.zip)
+21:04:43 :# GET received from ('127.0.0.1', 53496)
+21:04:43 :    for the path /
+21:05:02 :# GET received from ('127.0.0.1', 53497)
+21:05:02 :    for the path /zips/MONS_Des_kheys_lannee_prochaine.zip
+21:05:02 :client supprim� :127.0.0.1

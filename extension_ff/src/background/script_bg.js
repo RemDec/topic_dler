@@ -107,11 +107,13 @@ function update_popup(new_val){
 function alert_dl_ready(zip, dler){
     var dl_url = zip.url;
     browser.browserAction.setIcon({path:"../../icons/icon-32-notif.png"});
-    var popup_dl = {elmt_id:"dl_state", new_class:"dl_link", type:"link_img",
+    var popup_dl = {elmt_id:"dl_state", new_class:"dl_link", type:"link_img", topic_title:dler.title,
                     val:"Télécharger l'archive", url:dl_url, img:"../../data/icon-dl.png"};
     update_popup(popup_dl);
-    var ev_carac = {url:dl_url, topic_url:dler.topic_url,topic_title:dler.title,
-                    author:dler.author, nbr_dl:dler.nbr_dl};
+    console.log("Nouveeau dl pour histo :");
+    var ev_carac = {name:dl_url, url:dl_url, topic_url:dler.topic_url,
+                    topic_title:dler.title, author:dler.author, nbr_dl:dler.nbr_dl,
+                    max_page:dler.max_page};
     report_history({ev_type:"old_dl", carac:ev_carac});
 }
 
@@ -129,13 +131,15 @@ function Requester(ask_serv_delay=4){
     this.xhr = new XMLHttpRequest();
     this.last_resp = "";
     this.server = "http://localhost:8000";
+    // this.server = "http://wolnetwork.fr:8000";
     this.timeout_id = null;
     
-    this.create_request = function(form, url="http://localhost:8000"){
+    this.create_request = function(form, url=this.server){
         function onChange(){
             if(this.status===200){
                 onChange.req.last_resp = this.responseText;
                 onChange.req.start_ask_serv();
+                onChange.req.treat_response();
             }else{
                 var popup_infos = {elmt_id:"dl_state", new_class:"txt_error",
                                    type:"text", val:"serveur "+onChange.req.server+" injoignable"};
@@ -186,11 +190,10 @@ function Requester(ask_serv_delay=4){
                 console.log("DL serveur terminé, url ="+zip.url);
                 clearInterval(this.timeout_id);
                 this.timeout_id = null;
-                //download(zip.url);
                 alert_dl_ready(zip, dler);
                 break;
             case "cancelled":
-                console.log("Aucun client serveur pour l'IP " + json_resp.address);
+                console.log("Aucun client admis par le serveur pour l'IP " + json_resp.address);
                 clearInterval(this.timeout_id);
                 this.timeout_id = null;
                 break;
@@ -206,12 +209,20 @@ function Requester(ask_serv_delay=4){
     this.cancel_getting = function(){
         if(this.is_getting()){
             clearInterval(this.timeout_id);
+            this.send_cancel_alert();
             var popup_infos = {elmt_id:"dl_state", new_class:"txt_error",
                                 type:"text", val:"requête annulée"};
             update_popup(popup_infos);
         }
     };
-        
+      
+    this.send_cancel_alert = function(){
+        xhr = new XMLHttpRequest();
+        xhr.timeout = 5000;
+        xhr.open("HEAD", this.server);
+        xhr.setRequestHeader('Connection', 'close');
+        xhr.send(null);
+    }
 };
 
 var requester = new Requester();
@@ -224,7 +235,7 @@ function init_request(fast_options){
                 fast_options.append(key, spec[key]);
             }
         }
-        requester.create_request(fast_options, "http://localhost:8000");
+        requester.create_request(fast_options);
     }
     browser.storage.local.get("spec_options").then(onGot, onError);
     var popup_infos = {elmt_id:"dl_state", new_class:"",
@@ -236,7 +247,7 @@ function init_request(fast_options){
 //-------- events --------
 function report_history(event){
     function save_in_storage(historic, event){
-        //event de le forme event = {ev_type:"..", ev_carac:{url:"..", etc}}
+        //event de le forme event = {ev_type:"..", carac:{url:"..", etc}}
         //historic de la forme historic = {ev_type1:[carac1, carac2,..], ev_type2:[],..}        
         var all_carac = historic[event.ev_type];
         for(let carac of all_carac){

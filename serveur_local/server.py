@@ -4,7 +4,7 @@ from socketserver import ThreadingMixIn
 from io import BytesIO
 from jvc_downloader import *
 from urllib.parse import parse_qs
-import re, os, datetime, threading, time, shutil
+import re, os, datetime, threading, time, shutil, sys
 
 
 class Logger():
@@ -82,13 +82,13 @@ class JSONer():
     def dl_done(self, client):
         # client = [#perdiodes attendues, lien dl archive]
         h = self.get_head('done')
-        zip = ('"archive":{"url":"'+DOMAIN+client[1][1:] + '", "wait":'+str(client[0])+'},'+
+        zip = ('"archive":{"url":"http://'+DOMAIN+client[1][1:] + '", "wait":'+str(client[0])+'},'+
                client[2]) 
         return h[0] + zip + h[1]
         
     def cancelled(self, client_id):
         h = self.get_head('cancelled')
-        c = '"address":"'+client_id + '"'
+        c = '"address":"' + client_id + '"'
         return h[0] + c + h[1]
 
     def error(self, err_str):
@@ -113,14 +113,9 @@ class Zipper_thread(threading.Thread):
         
     def stop(self):
         self.cont = False
-        
-    def delete_client_res(self, client_id):
-        del self.dler.curr_clients[client_id]
-        logger.log("client supprimé :" + client_id)
     
     def find_dl_over(self):
         while self.cont:
-            # print("Iteration clients pour zipper")
             dl_finished = []
             overtimed = []
             for client_id, jvc_dler in self.dler.curr_clients.items():
@@ -138,7 +133,7 @@ class Zipper_thread(threading.Thread):
             for client_id, zipath, topic_info in dl_finished:
                 self.dler.curr_clients[client_id] = [0, zipath, topic_info]
             for client_id in overtimed:
-                self.delete_client_res(client_id)
+                self.dler.delete_client_res(client_id)
             time.sleep(INTERVAL)
         
     def zippify(self, jvc_dler, client_id):
@@ -216,8 +211,33 @@ class Downloader():
         time.sleep(2)
         return 0
         
+    def delete_client_res(self, client_id):
+        del self.curr_clients[client_id]
+        logger.log("client supprimé :" + client_id)
+        
+    def cancel_client(self, client_id):
+        client_status = self.curr_clients.get(client_id)
+        if client_status is not None:
+            if type(client_status) is Jvc_downloader:
+                client_status.stop()
+                self.delete_client_res(client_id)
+        
         
 class ExtensionRequestHandler(SimpleHTTPRequestHandler):
+
+    def do_HEAD(self):
+        self.protocol_version = 'HTTP/1.1'
+        logger.log("# HEAD received from " + str(self.client_address[0]))
+        dler.cancel_client(dler.get_client_id(self))
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Connection', 'close')
+        self.send_header('Content-Type', 'application/json')
+        # print(jsoner.cancelled(self.client_address[0]))
+        to_send = bytes(jsoner.cancelled(self.client_address[0]), "utf-8")
+        self.send_header('Content-Length', str(len(to_send)))
+        self.end_headers()
+        self.wfile.write(to_send)
         
     def do_GET(self):
         self.protocol_version = 'HTTP/1.1'
@@ -241,7 +261,7 @@ class ExtensionRequestHandler(SimpleHTTPRequestHandler):
         
     def do_POST(self):
         self.protocol_version = 'HTTP/1.1'
-        logger.log("# POST received from " + str(self.client_address))
+        logger.log("# POST received from " + str(self.client_address[0]))
         (accept_client, state) = dler.accept_client(self)
 
         if accept_client:
@@ -259,19 +279,28 @@ class ExtensionRequestHandler(SimpleHTTPRequestHandler):
         self.send_header('Content-Length', str(len(resp)))
         self.end_headers()
         self.wfile.write(resp)
-        logger.log("# POST reply to "+str(self.client_address)+" code :"+str(code))
+        logger.log("# POST reply to "+str(self.client_address[0])+" code :"+str(code))
         
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Override de certaines methodes de HTTPServer pour multithreading"""
 
 # constantes
-DOMAIN = "http://localhost:8000"
+DOMAIN = "localhost:8000"
 DL_DIR_PATH = "./clients_dl"
 ZIP_DIR_PATH = "/zips"
 INTERVAL = 3
 
 
 if __name__=="__main__":
+    
+    args = sys.argv
+    if "-s" in args:
+        ind_flag = args.index("-s")
+        if ind_flag+1 < len(args):
+            DOMAIN = args[ind_flag+1]
+            args.pop(ind_flag+1)
+        args.pop(ind_flag)
+    
     try:
         jsoner = JSONer()
         logger = Logger()
