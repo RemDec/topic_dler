@@ -1,42 +1,22 @@
-----2018-09-05 21:03:20.581846----
-21:03:32 :# POST received from 127.0.0.1
-21:03:35 :# POST reply to 127.0.0.1 code :200
-21:03:39 :# GET received from ('127.0.0.1', 53262)
-21:03:39 :    for the path /
-21:03:43 :# GET received from ('127.0.0.1', 53270)
-21:03:43 :    for the path /
-21:03:47 :# GET received from ('127.0.0.1', 53277)
-21:03:47 :    for the path /
-21:03:51 :# GET received from ('127.0.0.1', 53318)
-21:03:51 :    for the path /
-21:03:55 :# GET received from ('127.0.0.1', 53355)
-21:03:55 :    for the path /
-21:03:59 :# GET received from ('127.0.0.1', 53363)
-21:03:59 :    for the path /
-21:04:03 :# GET received from ('127.0.0.1', 53368)
-21:04:03 :    for the path /
-21:04:07 :# GET received from ('127.0.0.1', 53378)
-21:04:07 :    for the path /
-21:04:11 :# GET received from ('127.0.0.1', 53387)
-21:04:11 :    for the path /
-21:04:15 :# GET received from ('127.0.0.1', 53394)
-21:04:15 :    for the path /
-21:04:19 :# GET received from ('127.0.0.1', 53404)
-21:04:19 :    for the path /
-21:04:23 :# GET received from ('127.0.0.1', 53411)
-21:04:23 :    for the path /
-21:04:27 :# GET received from ('127.0.0.1', 53434)
-21:04:27 :    for the path /
-21:04:31 :# GET received from ('127.0.0.1', 53444)
-21:04:31 :    for the path /
-21:04:35 :# GET received from ('127.0.0.1', 53454)
-21:04:35 :    for the path /
-21:04:39 :# GET received from ('127.0.0.1', 53490)
-21:04:39 :    for the path /
-21:04:41 :création zip pour 127.0.0.1
-21:04:41 :zip créé pour client 127.0.0.1 (path=./zips/MONS_Des_kheys_lannee_prochaine.zip)
-21:04:43 :# GET received from ('127.0.0.1', 53496)
-21:04:43 :    for the path /
-21:05:02 :# GET received from ('127.0.0.1', 53497)
-21:05:02 :    for the path /zips/MONS_Des_kheys_lannee_prochaine.zip
-21:05:02 :client supprimé :127.0.0.1
+----2018-09-05 21:17:43.438541----
+21:17:46 :# POST received from 127.0.0.1
+21:17:46 :# POST reply to 127.0.0.1 code :503
+21:18:31 :# POST received from 127.0.0.1
+21:18:33 :# POST reply to 127.0.0.1 code :503
+21:18:44 :# POST received from 127.0.0.1
+21:18:47 :# POST reply to 127.0.0.1 code :200
+21:18:51 :# GET received from ('127.0.0.1', 54105)
+21:18:51 :    for the path /
+21:18:55 :# GET received from ('127.0.0.1', 54108)
+21:18:55 :    for the path /
+21:18:59 :# GET received from ('127.0.0.1', 54117)
+21:18:59 :    for the path /
+21:19:01 :création zip pour 127.0.0.1
+21:19:01 :zip créé pour client 127.0.0.1 (path=./zips/Les_ecouteurs_intraauriculaires_on_en_PARLE_.zip)
+21:19:03 :# GET received from ('127.0.0.1', 54118)
+21:19:03 :    for the path /
+21:19:04 :# GET received from ('127.0.0.1', 54119)
+21:19:04 :# GET received from ('127.0.0.1', 54120)
+21:19:04 :    for the path //zips/Les_ecouteurs_intraauriculaires_on_en_PARLE_.zip
+21:19:04 :    for the path //zips/Jai_des_screens_snaps_dossiers_dun_pote_qui_veut_faire_youtubeur.zip
+21:19:22 :client supprimé :127.0.0.1

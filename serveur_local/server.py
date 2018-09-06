@@ -82,7 +82,7 @@ class JSONer():
     def dl_done(self, client):
         # client = [#perdiodes attendues, lien dl archive]
         h = self.get_head('done')
-        zip = ('"archive":{"url":"http://'+DOMAIN+client[1][1:] + '", "wait":'+str(client[0])+'},'+
+        zip = ('"archive":{"url":"http://'+DOMAIN+':'+str(PORT)+'/'+client[1][1:] + '", "wait":'+str(client[0])+'},'+
                client[2]) 
         return h[0] + zip + h[1]
         
@@ -285,7 +285,8 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Override de certaines methodes de HTTPServer pour multithreading"""
 
 # constantes
-DOMAIN = "localhost:8000"
+DOMAIN = "localhost"
+PORT = 8000
 DL_DIR_PATH = "./clients_dl"
 ZIP_DIR_PATH = "/zips"
 INTERVAL = 3
@@ -305,8 +306,8 @@ if __name__=="__main__":
         jsoner = JSONer()
         logger = Logger()
         dler = Downloader()
-        httpd = ThreadedHTTPServer(('localhost', 8000), ExtensionRequestHandler)
-        print("#########--Lancement du serveur--#########")
+        httpd = ThreadedHTTPServer((DOMAIN, PORT), ExtensionRequestHandler)
+        print("#########--Lancement du serveur ("+ DOMAIN+":"+str(PORT) +")--#########")
         httpd.serve_forever()
     except KeyboardInterrupt:
         print("---------Ctrl+c---------")
