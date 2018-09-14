@@ -110,7 +110,6 @@ function alert_dl_ready(zip, dler){
     var popup_dl = {elmt_id:"dl_state", new_class:"dl_link", type:"link_img", topic_title:dler.title,
                     val:"Télécharger l'archive", url:dl_url, img:"../../data/icon-dl.png"};
     update_popup(popup_dl);
-    console.log("Nouveeau dl pour histo :");
     var ev_carac = {name:dl_url, url:dl_url, topic_url:dler.topic_url,
                     topic_title:dler.title, author:dler.author, nbr_dl:dler.nbr_dl,
                     max_page:dler.max_page};

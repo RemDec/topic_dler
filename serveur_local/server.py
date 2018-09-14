@@ -82,7 +82,7 @@ class JSONer():
     def dl_done(self, client):
         # client = [#perdiodes attendues, lien dl archive]
         h = self.get_head('done')
-        zip = ('"archive":{"url":"http://'+DOMAIN+':'+str(PORT)+'/'+client[1][1:] + '", "wait":'+str(client[0])+'},'+
+        zip = ('"archive":{"url":"http://'+DOMAIN+':'+str(PORT)+client[1][1:] + '", "wait":'+str(client[0])+'},'+
                client[2]) 
         return h[0] + zip + h[1]
         
@@ -228,12 +228,12 @@ class ExtensionRequestHandler(SimpleHTTPRequestHandler):
     def do_HEAD(self):
         self.protocol_version = 'HTTP/1.1'
         logger.log("# HEAD received from " + str(self.client_address[0]))
+        logger.log("    | Cancelling running client request")
         dler.cancel_client(dler.get_client_id(self))
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Connection', 'close')
         self.send_header('Content-Type', 'application/json')
-        # print(jsoner.cancelled(self.client_address[0]))
         to_send = bytes(jsoner.cancelled(self.client_address[0]), "utf-8")
         self.send_header('Content-Length', str(len(to_send)))
         self.end_headers()
@@ -241,12 +241,10 @@ class ExtensionRequestHandler(SimpleHTTPRequestHandler):
         
     def do_GET(self):
         self.protocol_version = 'HTTP/1.1'
-        print("--------------------------------")
         logger.log("# GET received from " + str(self.client_address))
-        #logger.log("# Headers : \n" + str(self.headers))
-        logger.log("    for the path " + self.path)
-        #logger.log("BODY :" + self.rfile.read(self.headers['Content-Length']).decode('utf-8'))
+        logger.log("  for the path " + self.path)
         if not "zips" in self.path:
+            logger.log("    | Responding current client request status")
             self.send_response(200)
             self.send_header('Access-Control-Allow-Origin', '*')
             self.send_header('Content-Type', 'application/json')
@@ -255,6 +253,7 @@ class ExtensionRequestHandler(SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(to_send)
         else:
+            logger.log("    | Trying to retrieve zip resource")
             super().do_GET()
         
         
