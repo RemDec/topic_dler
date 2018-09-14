@@ -1,10 +1,12 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from web_utils import *
 import sys
 
 
 def http_request(url, u_a = None, keep = False):
     """
-    Fait une requete pour l'url donnée et en retourne l'objet obtenu qui est
+    Fait une requete pour l'url donnee et en retourne l'objet obtenu qui est
     la réponse HTTP headers+data
     """
     if u_a is None:
