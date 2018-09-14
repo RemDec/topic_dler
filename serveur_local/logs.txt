@@ -1,14 +1,21 @@
-----2018-09-14 15:16:13.561318----
-15:16:23 :# POST received from 192.168.1.1
-15:16:25 :# POST reply to 192.168.1.1 code :200
-15:16:29 :# GET received from ('192.168.1.1', 53355)
-15:16:29 :    for the path /
-15:16:33 :# GET received from ('192.168.1.1', 53358)
-15:16:33 :    for the path /
-15:16:34 :création zip pour 192.168.1.1
-15:16:34 :zip créé pour client 192.168.1.1 (path=./zips/LANGLAIS_a_la_FAC.zip)
-15:16:37 :# GET received from ('192.168.1.1', 53359)
-15:16:37 :    for the path /
-15:16:55 :client supprimé :192.168.1.1
-15:29:55 :# GET received from ('192.168.1.54', 53380)
-15:29:55 :    for the path //zips/LANGLAIS_a_la_FAC.zip
+----2018-09-14 16:29:43.817966----
+16:30:19 :# POST received from 192.168.1.1
+16:30:21 :# POST reply to 192.168.1.1 code :200
+16:30:25 :# GET received from ('192.168.1.1', 54257)
+16:30:25 :  for the path /
+16:30:25 :    | Responding current client request status
+16:30:29 :# GET received from ('192.168.1.1', 54259)
+16:30:29 :  for the path /
+16:30:29 :    | Responding current client request status
+16:30:31 :création zip pour 192.168.1.1
+16:30:32 :zip créé pour client 192.168.1.1 (path=./zips/HELP_Jai_quoi_a_LAVANT_BRAS__PHOTOS_.zip)
+16:30:33 :# GET received from ('192.168.1.1', 54261)
+16:30:33 :  for the path /
+16:30:33 :    | Responding current client request status
+16:30:51 :# GET received from ('192.168.1.54', 54262)
+16:30:51 :# GET received from ('192.168.1.54', 54263)
+16:30:51 :  for the path /zips/PHOTOS_Emily_Ratajkowski__cette_10sur10_ultime.zip
+16:30:51 :  for the path /zips/HELP_Jai_quoi_a_LAVANT_BRAS__PHOTOS_.zip
+16:30:51 :    | Trying to retrieve zip resource
+16:30:51 :    | Trying to retrieve zip resource
+16:30:53 :client supprimé :192.168.1.1
