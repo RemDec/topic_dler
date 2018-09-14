@@ -254,6 +254,7 @@ class ExtensionRequestHandler(SimpleHTTPRequestHandler):
             self.wfile.write(to_send)
         else:
             logger.log("    | Trying to retrieve zip resource")
+            self.send_header('Access-Control-Allow-Origin', '*')
             super().do_GET()
         
         

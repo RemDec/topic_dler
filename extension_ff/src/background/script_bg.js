@@ -79,7 +79,7 @@ function download(url){
         console.log("Début du DL de " + url);
     }
     console.log("DL >"+url+"\n type" + typeof url);
-    var downloading = browser.downloads.download({"url":url});
+    var downloading = browser.downloads.download({"url":url, "headers":[{name:"Access-Control-Allow-Origin", value:"*"}]});
     downloading.then(onStartDL, onError);
 }
 
