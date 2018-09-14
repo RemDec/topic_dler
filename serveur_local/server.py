@@ -286,6 +286,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 
 # constantes
 DOMAIN = "localhost"
+DOMAIN = "192.168.1.54"
 PORT = 8000
 DL_DIR_PATH = "./clients_dl"
 ZIP_DIR_PATH = "/zips"

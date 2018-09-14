@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*
 from web_utils import *
 import sys
 
@@ -11,7 +12,7 @@ def http_request(url, u_a = None, keep = False):
         user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:61.0) Gecko/20100101 Firefox/61.0'
     else:
         user_agent = u_a
-    my_headers={'User-Agent': user_agent}
+    my_headers={'User-Agent': user_agent, 'Referer':'http://www.jeuxvideo.com/'}
     if keep:
         my_headers['Connection'] = "Keep-Alive"
     try:
