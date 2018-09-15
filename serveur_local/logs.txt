@@ -1,28 +1,20 @@
-----2018-09-14 18:37:55.287082----
-18:37:57 :# POST received from 192.168.1.1
-18:37:59 :# POST reply to 192.168.1.1 code :200
-18:38:01 :création zip pour 192.168.1.1
-18:38:01 :zip créé pour client 192.168.1.1 (path=./zips/je_suis_le_seul_quand_je_joue_au_battle_royal_sur_telephone.zip)
-18:38:03 :# GET received from ('192.168.1.1', 55269)
-18:38:03 :  for the path /
-18:38:03 :    | Responding current client request status
-18:38:22 :client supprimé :192.168.1.1
-18:38:30 :# POST received from 192.168.1.1
-18:38:31 :# POST reply to 192.168.1.1 code :200
-18:38:34 :création zip pour 192.168.1.1
-18:38:34 :zip créé pour client 192.168.1.1 (path=./zips/je_suis_le_seul_quand_je_joue_au_battle_royal_sur_telephone.zip)
-18:38:35 :# GET received from ('192.168.1.1', 55275)
-18:38:35 :  for the path /
-18:38:35 :    | Responding current client request status
-18:38:55 :client supprimé :192.168.1.1
-18:39:35 :# POST received from 192.168.1.1
-18:39:36 :# POST reply to 192.168.1.1 code :200
-18:39:37 :création zip pour 192.168.1.1
-18:39:37 :zip créé pour client 192.168.1.1 (path=./zips/je_suis_le_seul_quand_je_joue_au_battle_royal_sur_telephone.zip)
-18:39:40 :# GET received from ('192.168.1.1', 55283)
-18:39:40 :  for the path /
-18:39:40 :    | Responding current client request status
-18:39:42 :# GET received from ('192.168.1.54', 55284)
-18:39:42 :  for the path /zips/je_suis_le_seul_quand_je_joue_au_battle_royal_sur_telephone.zip
-18:39:42 :    | Trying to retrieve zip resource
-18:39:58 :client supprimé :192.168.1.1
+----2018-09-15 19:02:48.253176----
+19:03:39 :# POST received from 192.168.1.1
+19:03:43 :# POST reply to 192.168.1.1 code :503
+19:03:50 :# POST received from 192.168.1.1
+19:03:52 :# POST reply to 192.168.1.1 code :200
+19:03:56 :# GET received from ('192.168.1.1', 63957)
+19:03:56 :  for the path /
+19:03:56 :    | Responding current client request status
+19:04:00 :# GET received from ('192.168.1.1', 63961)
+19:04:00 :  for the path /
+19:04:00 :    | Responding current client request status
+19:04:00 :création zip pour 192.168.1.1
+19:04:00 :zip créé pour client 192.168.1.1 (path=./zips/Je_crois_que_ma_voisine_veut_ma_bite.zip)
+19:04:04 :# GET received from ('192.168.1.1', 63962)
+19:04:04 :  for the path /
+19:04:04 :    | Responding current client request status
+19:04:18 :# GET received from ('192.168.1.1', 63963)
+19:04:18 :  for the path /zips/Je_crois_que_ma_voisine_veut_ma_bite.zip
+19:04:18 :    | Trying to retrieve zip resource
+19:04:21 :client supprimé :192.168.1.1

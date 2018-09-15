@@ -82,7 +82,7 @@ class JSONer():
     def dl_done(self, client):
         # client = [#perdiodes attendues, lien dl archive]
         h = self.get_head('done')
-        zip = ('"archive":{"url":"http://'+DOMAIN+':'+str(PORT)+client[1][1:] + '", "wait":'+str(client[0])+'},'+
+        zip = ('"archive":{"url":"http://'+EXT_ADDRESS+':'+str(PORT)+client[1][1:] + '", "wait":'+str(client[0])+'},'+
                client[2]) 
         return h[0] + zip + h[1]
         
@@ -254,9 +254,9 @@ class ExtensionRequestHandler(SimpleHTTPRequestHandler):
             self.wfile.write(to_send)
         else:
             logger.log("    | Trying to retrieve zip resource")
-            self.send_header('Access-Control-Allow-Origin', '*')
+            # self.send_header('Access-Control-Allow-Origin', '*')
             super().do_GET()
-        
+            
         
         
     def do_POST(self):
@@ -287,6 +287,8 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 # constantes
 DOMAIN = "localhost"
 DOMAIN = "192.168.1.54"
+EXT_ADDRESS = "81.247.116.134"
+
 PORT = 8000
 DL_DIR_PATH = "./clients_dl"
 ZIP_DIR_PATH = "/zips"
@@ -311,7 +313,7 @@ if __name__=="__main__":
         print("#########--Lancement du serveur ("+ DOMAIN+":"+str(PORT) +")--#########")
         httpd.serve_forever()
     except KeyboardInterrupt:
-        print("---------Ctrl+c---------")
+        print("\n---------Ctrl+c---------")
         httpd.server_close()
         dler.kill_all_threads()
         from sys import exit as exit
