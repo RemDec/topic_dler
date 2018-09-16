@@ -3,6 +3,7 @@ console.log("script background |");
 //-------- utilitaires --------
 function onError(error){console.log('Error:' + error)};
 
+/* Retourne vrai si un objet est vide ( {} )*/
 function isEmpty(obj) {
     for(var prop in obj) {
         if(obj.hasOwnProperty(prop))
@@ -11,24 +12,25 @@ function isEmpty(obj) {
     return true;
 };
 
+/* Affiche le contenu des couples clef - valeur d'un formulaire */
 function disp_formData(form){
     for (var [key, value] of form.entries()) { 
       console.log(key, value);
     }
 }
 //-------- accès stockage --------
+/* Affiche tout le contenu du stockage intra extension */
 function display_settings(prefix){
     function onGot(items){
         console.log(prefix);
         console.log(items);
     }
-
     getting = browser.storage.local.get(null);
     getting.then(onGot, onError);
 };
 
+/* Remet tous les parametres a leur valeur par defaut, clean toute la memoire */
 function set_default(){
-        
     function onGot(options){
         display_settings("Réécriture si mémoire vide:");
         if(isEmpty(options)){
@@ -46,11 +48,11 @@ function set_default(){
                 .then(function(){display_settings('Ecriture param défaut :')}, onError);
         }
     };
-    
     let getting_basics = browser.storage.local.get(["basic_options","spec_options"]);
     getting_basics.then(onGot, onError);
 };
 
+/* Efface toute la memoire et restaure les valeurs par defaut */
 function clean_memory(){
     function onCleared(){
         display_settings("Après nettoyage");
@@ -61,6 +63,7 @@ function clean_memory(){
     clearStorage.then(onCleared, onError);
 };
 
+/* Applique une fonction fun sur l'objet du stockage interne id (args passés à fun)*/
 function apply_on_storage(stor_id, fun, args){
     function onGot(stor){
         function onWritten(){display_settings("Après appli "+fun.name+" sur "+stor_id)};
@@ -74,6 +77,7 @@ function apply_on_storage(stor_id, fun, args){
 
 //-------- communications extension --------
 
+/* Lance le DL dans le module de base du naviguateur pour la ressource pointée par url */
 function download(url){
     function onStartDL(id){
         console.log("Début du DL de " + url);
@@ -92,18 +96,24 @@ function cancel_dl(){
 
 var last_popup_maj = {};
 
+/* Envoie un message au popup pour refresh son affichage avec le contenu
+passé en argument ou le dernier contenu enregistré pour l'élément si c'est 
+son id qui est passé en arg */
 function update_popup(new_val){
     function onSend(){
         last_popup_maj[new_val.elmt_id] = new_val;
+        console.log("Maj contenu popup dans le background pour " + new_val.elmt_id);
     }
     if(typeof(new_val) == "string")
         new_val = last_popup_maj[new_val];
     if(new_val){
         var sending = browser.runtime.sendMessage(new_val);
-        sending.then(onSend);
+        sending.then(onSend, onSend);
     }
 }
 
+/* Action déclenchée a la réception de l'url de l'archive à dl retournée par 
+le serveur lors du dernier GET d'actualisation */
 function alert_dl_ready(zip, dler){
     var dl_url = zip.url;
     browser.browserAction.setIcon({path:"../../icons/icon-32-notif.png"});
@@ -116,6 +126,8 @@ function alert_dl_ready(zip, dler){
     report_history({ev_type:"old_dl", carac:ev_carac});
 }
 
+/* Action déclenchée à la réception d'une réponse au GET d'actualisation indiquant 
+que le script tourne encore pour ce client, dler contenant les infos de sa progression */
 function alert_progress(dler){
     var p = {elmt_id:"dl_state", new_class:"progress", type:"bar",
             min:0, max:dler.max_page, curr:dler.curr_page, dled:dler.nbr_dl};
@@ -125,7 +137,8 @@ function alert_progress(dler){
 //-------- communications serveur --------
 
 function Requester(ask_serv_delay=4){
-    
+    /* Objet gérant les communications serveur et adaptant le comportement
+    de l'extension en fonction des réponses reçues (1 seul DL à la fois) */
     this.ask_serv_delay = ask_serv_delay;
     this.xhr = new XMLHttpRequest();
     this.last_resp = "";
@@ -226,6 +239,8 @@ function Requester(ask_serv_delay=4){
 
 var requester = new Requester();
 
+/* Lancement d'une nouvelle requete au serveur, avec les options rapides 
+ en arguments qui priment sur celles contenues dans le stockage */
 function init_request(fast_options){
     function onGot(stor){
         var spec = stor["spec_options"];
@@ -244,6 +259,8 @@ function init_request(fast_options){
 
 
 //-------- events --------
+/* Enregistre dans le stockage (la zone dédiée à l'historique client) l'évènement
+ donné, qui doit mentionner son type d'event */
 function report_history(event){
     function save_in_storage(historic, event){
         //event de le forme event = {ev_type:"..", carac:{url:"..", etc}}

@@ -1,20 +1,18 @@
-----2018-09-15 19:02:48.253176----
-19:03:39 :# POST received from 192.168.1.1
-19:03:43 :# POST reply to 192.168.1.1 code :503
-19:03:50 :# POST received from 192.168.1.1
-19:03:52 :# POST reply to 192.168.1.1 code :200
-19:03:56 :# GET received from ('192.168.1.1', 63957)
-19:03:56 :  for the path /
-19:03:56 :    | Responding current client request status
-19:04:00 :# GET received from ('192.168.1.1', 63961)
-19:04:00 :  for the path /
-19:04:00 :    | Responding current client request status
-19:04:00 :création zip pour 192.168.1.1
-19:04:00 :zip créé pour client 192.168.1.1 (path=./zips/Je_crois_que_ma_voisine_veut_ma_bite.zip)
-19:04:04 :# GET received from ('192.168.1.1', 63962)
-19:04:04 :  for the path /
-19:04:04 :    | Responding current client request status
-19:04:18 :# GET received from ('192.168.1.1', 63963)
-19:04:18 :  for the path /zips/Je_crois_que_ma_voisine_veut_ma_bite.zip
-19:04:18 :    | Trying to retrieve zip resource
-19:04:21 :client supprimé :192.168.1.1
+----2018-09-16 12:50:45.910603----
+12:50:48 :# POST received from 192.168.1.1
+12:50:49 :# POST reply to 192.168.1.1 code :200
+12:50:53 :# GET received from ('192.168.1.1', 60804)
+12:50:53 :  for the path /
+12:50:53 :    | Responding current client request status
+12:50:57 :# GET received from ('192.168.1.1', 60829)
+12:50:57 :  for the path /
+12:50:57 :    | Responding current client request status
+12:51:00 :création zip pour 192.168.1.1
+12:51:00 :zip créé pour client 192.168.1.1 (path=./zips/IRL_Mons_lundi_rentree_entre_kheys.zip)
+12:51:01 :# GET received from ('192.168.1.1', 60858)
+12:51:01 :  for the path /
+12:51:01 :    | Responding current client request status
+12:51:21 :client supprimé :192.168.1.1
+13:44:59 :# GET received from ('139.162.79.87', 43392)
+13:44:59 :  for the path /
+13:44:59 :    | Responding current client request status

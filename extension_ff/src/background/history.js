@@ -48,10 +48,16 @@ function get_copy_button(url){
 };
 
 function get_linked_line(url, prefix = "Lien", copy_btn=true, classname="prefixed"){
-    var btn = copy_btn ? get_copy_button(url) : "";
-    var prefix_linked = link_it(url, true, prefix);
-    var h = copy_btn ? prefix_linked.outerHTML+" ["+btn.outerHTML+"]" : prefix_linked.outerHTML;
-    return div_it(classname, "", h+" : <em>" + url + "</em>");
+    if(copy_btn){
+        var div = div_it(classname, "", link_it(url, true, prefix).outerHTML+" [");
+        div.appendChild(get_copy_button(url));
+        div.appendChild(document.createTextNode("] : "));
+        div.appendChild(document.createElement("em"));
+        div.lastChild.innerHTML = url;
+        return div;
+    }else{
+        return div_it(classname, "", link_it(url, true, prefix).outerHTML+" : <em>"+url+"</em>");
+    }
 }
 
 function load_topics(topics){
