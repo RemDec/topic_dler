@@ -143,7 +143,8 @@ function Requester(ask_serv_delay=4){
     this.xhr = new XMLHttpRequest();
     this.last_resp = "";
     // this.server = "http://localhost:8000";
-    this.server = "http://81.247.116.134:8000";
+    // this.server = "http://81.247.116.134:8000";
+    this.server = "http://85.201.215.252:8000";
     this.timeout_id = null;
     
     this.create_request = function(form, url=this.server){

@@ -2,9 +2,8 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler, SimpleHTTPRequestHandler
 from socketserver import ThreadingMixIn
 from io import BytesIO
-from urllib.parse import parse_qs
 from jvc_downloader import *
-from web_utils import get_local_ip
+from urllib.parse import parse_qs
 import re, os, datetime, threading, time, shutil, sys
 
 
@@ -286,10 +285,10 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Override de certaines methodes de HTTPServer pour multithreading"""
 
 # constantes
-DOMAIN = get_local_ip()
-# Fag EXT_ADDRESS = "81.247.116.134"
-# Mon EXT_ADDRESS = "85.201.215.252"
-EXT_ADDRESS = "85.201.215.252"
+DOMAIN = "localhost"
+DOMAIN = "192.168.1.54"
+EXT_ADDRESS = "81.247.116.134"
+
 PORT = 8000
 DL_DIR_PATH = "./clients_dl"
 ZIP_DIR_PATH = "/zips"
@@ -303,13 +302,6 @@ if __name__=="__main__":
         ind_flag = args.index("-s")
         if ind_flag+1 < len(args):
             DOMAIN = args[ind_flag+1]
-            args.pop(ind_flag+1)
-        args.pop(ind_flag)
-        
-    if "-i" in args:
-        ind_flag = args.index("-i")
-        if ind_flag+1 < len(args):
-            EXT_ADDRESS = args[ind_flag+1]
             args.pop(ind_flag+1)
         args.pop(ind_flag)
     
