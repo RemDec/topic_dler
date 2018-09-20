@@ -8,14 +8,9 @@ from socket import timeout
 
 def get_local_ip(default="127.0.0.1", to_contact="8.8.8.8"):
     import socket
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect((to_contact, 80))
-        return s.getsockname()[0]
-    except:
-        return default
-    finally:
-        s.close()
+    s = socket.socket(socket.AF_INET, sock.SOCK_DGRAM)
+    s.connect((to_contact, 80))
+    return s.getsockname()[0]
         
 class Page_not_foundError(Exception):
     def __init__(self, url, err_tuple=None):

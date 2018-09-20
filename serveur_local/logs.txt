@@ -1,18 +1,1 @@
-----2018-09-16 12:50:45.910603----
-12:50:48 :# POST received from 192.168.1.1
-12:50:49 :# POST reply to 192.168.1.1 code :200
-12:50:53 :# GET received from ('192.168.1.1', 60804)
-12:50:53 :  for the path /
-12:50:53 :    | Responding current client request status
-12:50:57 :# GET received from ('192.168.1.1', 60829)
-12:50:57 :  for the path /
-12:50:57 :    | Responding current client request status
-12:51:00 :création zip pour 192.168.1.1
-12:51:00 :zip créé pour client 192.168.1.1 (path=./zips/IRL_Mons_lundi_rentree_entre_kheys.zip)
-12:51:01 :# GET received from ('192.168.1.1', 60858)
-12:51:01 :  for the path /
-12:51:01 :    | Responding current client request status
-12:51:21 :client supprimé :192.168.1.1
-13:44:59 :# GET received from ('139.162.79.87', 43392)
-13:44:59 :  for the path /
-13:44:59 :    | Responding current client request status
+----2018-09-20 19:27:43.838503----
