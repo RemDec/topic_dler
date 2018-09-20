@@ -8,12 +8,16 @@ init_request = browser.extension.getBackgroundPage().init_request;
 cancel_dl = browser.extension.getBackgroundPage().cancel_dl;
 download = browser.extension.getBackgroundPage().download;
 
+/* Recherche du premier onglet corresp à un topic, si trouvé retourne 
+le nom du topic propre */
 function is_jvc_tab(tab_name){
     if(~(limit = tab_name.indexOf("sur le forum ")))
         return tab_name.substring(0, limit-1);
     return false;
 };
 
+/* Met a jour l'affichage et l'url du premier onglet d'un topic jvc trouvé,
+d'abord dans la fenetre actuelle */
 function find_jvc_tab(){
     var curr_topic_name, res;
     var all_tabs_prom = browser.tabs.query({currentWindow: true});
@@ -31,14 +35,18 @@ function find_jvc_tab(){
     all_tabs_prom.then(find_first_tab, onError);
 };
 
-function topic_name_to_span(name){
+/* Crée un élément span à partir d'une string en limitant le nbr de caractères */
+function topic_name_to_span(name, max = 73, classes=""){
     var span = document.createElement("span");
-    if(name.length > 73)
-        name = name.substring(0, 70) + '...';
-    span.innertHTML = name;
+    if(classes)
+        span.className = classes;
+    if(name.length > max)
+        name = name.substring(0, max-3) + '...';
+    span.innerHTML = name;
     return span;
 }
 
+/* Remet l'icone de la popup par défaut */
 function refresh_icon(){
     browser.browserAction.setIcon({path:"../../icons/icon-32.png"});
 }
@@ -51,6 +59,8 @@ function init_popup(){
     refresh_from_bg();
 }
 
+/* Recherche le 1er topic actif dans les onglets et met a jour l'affichage 
+et l'url correspondante */
 function set_curr_topic(name, url){
     var txt = document.getElementById("topic_name");
     txt.innerHTML = name;
@@ -59,7 +69,7 @@ function set_curr_topic(name, url){
 };
 
 var cancel_btn = null;
-
+/* Crée ou retourne le bouton d'annulation de requete en cours */
 function get_cancel_btn(){
     if(cancel_btn === null){
         var btn = document.createElement("div");
@@ -140,7 +150,9 @@ function update_dl_state(request){
         img.src = request.img; img.alt="dl_img";
         target.firstChild.appendChild(img);
         target.addEventListener('click', function(){download(request.url);refresh_icon()});
-        target.firstChild.appendChild
+        var title = document.createElement("div");
+        title.appendChild(topic_name_to_span(request.topic_title, 100, "tiny_txt"));
+        target.firstChild.appendChild(title);
     }
     if(request.type == "bar"){
         target.innerHTML = "<progress id='prog_bar' value='"+request.curr+"' max='"+request.max+"'/>";
@@ -157,6 +169,7 @@ function handleMessage(request, sender, sendResponse){
 
 function refresh_from_bg(){
     for(let id in refresh_fcts){
+        console.log("Reaffichage de " + id + " a partir du stockage background");
         browser.extension.getBackgroundPage().update_popup(id);
     }
 }
