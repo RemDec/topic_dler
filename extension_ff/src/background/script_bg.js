@@ -134,6 +134,13 @@ function alert_progress(dler){
     update_popup(p);
 }
 
+function alert_error(error){
+    var err_msg = typeof(error)=="number" ? "serveur injoignable:"+error : error.reason+"("+error.code+")"; 
+    var popup_infos = {elmt_id:"dl_state", new_class:"txt_error",
+                       type:"text", val:err_msg};
+    update_popup(popup_infos);
+}
+
 //-------- communications serveur --------
 
 function Requester(ask_serv_delay=4){
@@ -154,9 +161,10 @@ function Requester(ask_serv_delay=4){
                 onChange.req.start_ask_serv();
                 onChange.req.treat_response();
             }else{
-                var popup_infos = {elmt_id:"dl_state", new_class:"txt_error",
-                                   type:"text", val:"serveur "+onChange.req.server+" injoignable"};
-                update_popup(popup_infos);
+                if(this.status===503)
+                    alert_error(JSON.parse(this.responseText)["error"]);
+                else
+                    alert_error(this.status);
             }
         }
         onChange.req = this;

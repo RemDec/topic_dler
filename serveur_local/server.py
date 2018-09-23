@@ -310,6 +310,10 @@ if __name__=="__main__":
         ind_flag = args.index("-i")
         if ind_flag+1 < len(args):
             EXT_ADDRESS = args[ind_flag+1]
+            if EXT_ADDRESS == "M":
+                EXT_ADDRESS = "85.201.215.252"
+            elif EXT_ADDRESS == "F":
+                EXT_ADDRESS = "81.247.116.134"
             args.pop(ind_flag+1)
         args.pop(ind_flag)
     
