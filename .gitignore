@@ -89,7 +89,7 @@ env/
 # Others
 serveur_local/zips
 serveur_local/clients_dl
-serveur_local/logs.*
+serveur_local/logs.txt
 src/*.html
 *.rar
 venv/
